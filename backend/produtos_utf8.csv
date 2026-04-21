@@ -1,0 +1,233 @@
+,Cadastro de produtos,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,Produto,Marca,Loja/Supermercado,Preço,Quantidade,Unidade,Categoria ,Região
+,1,Óleo de soja,Vitaliv,Delanana,7.99,900,mililitro,Cesta Básica,Itapira
+,2,Arroz,Sobradinho,Delanana,15.99,5,quilograma,Cesta Básica,Itapira
+,3,Macarrão,Basilar,Delanana,2.59,400,grama,Cesta Básica,Itapira
+,4,Açucar refinado,Alto alegre,Delanana,3.79,1,quilograma,Cesta Básica,Itapira
+,5,Molho de tomate,Fugini,Delanana,1.39,300,grama,Cesta Básica,Itapira
+,6,Leite ,Líder,Delanana,3.99,1,litro,Cesta Básica,Itapira
+,7,Lava louças ,Ypê,Delanana,1.99,500,mililitro,Limpeza,Itapira
+,8,Amaciante de roupas,Baby Soft,Delanana,6.99,2,litro,Limpeza,Itapira
+,9,Sabonete,Flor do Ype,Delanana,1.39,1,unidade,Outras,Itapira
+,10,Papel higiênico,Stylus,Delanana,9.99,12,unidade,Outras,Itapira
+,11,Creme dental,Sorriso,Delanana,2.19,70,grama,Outras,Itapira
+,12,Multi uso,Ypê,Delanana,2.99,500,mililitro,Limpeza,Itapira
+,13,Leite condensado,Italac,Delanana,5.79,395,grama,Outras,Itapira
+,14,Achocolatado,Nescau,Delanana,8.99,350,grama,Outras,Itapira
+,15,Milho verde,Fugini,Delanana,2.59,170,grama,Outras,Itapira
+,16,Margarina,Doriana,Delanana,5.89,500,grama,Outras,Itapira
+,17,Aceitona verde,Rivoli,Delanana,5.99,1,unidade,Outras,Itapira
+,18,Arroz,Camil,Savegnago,22.99,5,quilograma,Cesta Básica,Americana
+,19,Feijão,Camil,Savegnago,6.45,1,quilograma,Cesta Básica,Americana
+,20,Macarrão,Basilar,Savegnago,3.39,400,grama,Cesta Básica,Americana
+,21,Açucar refinado,União,Savegnago,3.95,1,quilograma,Cesta Básica,Americana
+,22,Farinha de Trigo,Renata,Savegnago,3.99,1,quilograma,Cesta Básica,Americana
+,23,Sal Refinado,Lebre,Savegnago,2.95,1,quilograma,Cesta Básica,Americana
+,24,Óleo de soja,Liza,Savegnago,8.19,900,mililitro,Cesta Básica,Americana
+,25,Café,Melitta,Savegnago,33.9,500,grama,Cesta Básica,Americana
+,26,Milho verde,Predilecta,Savegnago,3.29,170,grama,Outras,Americana
+,27,Molho de tomate,Fugini,Savegnago,1.69,300,grama,Cesta Básica,Americana
+,28,Leite Integral,Italac,Savegnago,4.65,1,litro,Cesta Básica,Americana
+,29,Sabonete,Palmolive,Savegnago,4.29,1,unidade,Outras,Americana
+,30,Papel higiênico,Sublime,Savegnago,11.95,12,unidade,Outras,Americana
+,31,Creme dental,Sorriso,Savegnago,4.69,120,grama,Outras,Americana
+,32,Sabão em pó,Tixan Ypê,Savegnago,19.71,"2,2",quilograma,Limpeza,Americana
+,33,Banana prata,Granel,Savegnago,8.99,1,quilograma,Hortifruti,Americana
+,34,Maçã Gala,Granel,Savegnago,9.95,1,quilograma,Hortifruti,Americana
+,35,Laranja Pêra,Granel,Savegnago,8.67,1,quilograma,Hortifruti,Americana
+,36,Limão,Granel,Savegnago,4.89,1,quilograma,Hortifruti,Americana
+,37,Peito de Frango,Granel,Savegnago,30.9,1,quilograma,Outras,Americana
+,38,Ovos,Mantiqueira,Savegnago,12.9,20,unidade,Outras,Americana
+,39,Leite,Italac,Geoli,3.79,1,litro,Outras,Itapira
+,40,Feijão tipo 1,Broto Legal,Geoli,8.49,1,quilograma,Cesta Básica,Itapira
+,41,Arroz,Solito Premium,Geoli,23.99,5,quilograma,Cesta Básica,Itapira
+,42,Café,Terra da gente,Geoli,23.49,"0,5",quilograma,Cesta Básica,Itapira
+,43,Molho de tomate,Predilecta,Geoli,1.99,"0,3",quilograma,Cesta Básica,Itapira
+,44,Pão de Queijo,Geoli,Geoli,4.47,"0,1",quilograma,Outras,Itapira
+,45,Mortadela ,Marba,Geoli,02.04,"0,1",quilograma,Outras,Itapira
+,46,Molho Tomate,Fugini,Antonelli,1.39,"0,3",quilograma,Cesta Básica,Itapira
+,47,Vinagre de Álcool,Fortaleza,Antonelli,1.89,"0,75",litro,Cesta Básica,Itapira
+,48,Feijao Carioca,Felgram Nobre,Antonelli,6.59,1,quilograma,Cesta Básica,Itapira
+,49,Arroz,Camil,Crema,27,5,quilograma,Cesta Básica,Americana
+,50,Feijão,Tio João,Crema,5.4,1,quilograma,Cesta Básica,Americana
+,51,Macarrão,Urbano,Crema,6,400,grama,Cesta Básica,Americana
+,52,Açucar Demerara,União,Crema,6.8,1,quilograma,Cesta Básica,Americana
+,53,Sal Refinado,Sal Lebre,Crema,3,1,quilograma,Cesta Básica,Americana
+,54,Óleo de soja,Liza,Crema,8.19,900,mililitro,Cesta Básica,Americana
+,55,Café,Melitta,Crema,32.5,500,grama,Cesta Básica,Americana
+,56,Molho de tomate,Fugini,Crema,2.7,300,grama,Cesta Básica,Americana
+,57,Leite A2,Italac,Crema,6.9,1,litro,Cesta Básica,Americana
+,58,Sabonete,Palmolive,Crema,4.6,1,unidade,Outras,Americana
+,59,Papel higiênico,Sublime,Crema,52,40,unidade,Outras,Americana
+,60,Creme dental,Colgate,Crema,5.9,120,grama,Outras,Americana
+,61,Sabão em pó,Urca,Crema,11,800,quilograma,Limpeza,Americana
+,62,Banana prata,Granel,Crema,9.99,1,quilograma,Hortifruti,Americana
+,63,Maçã Gala,Granel,Crema,11.9,1,quilograma,Hortifruti,Americana
+,64,Laranja Pêra,Granel,Crema,4.5,1,quilograma,Hortifruti,Americana
+,65,Limão,Granel,Crema,6.9,1,quilograma,Hortifruti,Americana
+,66,Filé de Peito de Frango,Granel,Crema,17.1,1,quilograma,Outras,Americana
+,67,Feijão,Broto Legal,Pão de Açúcar,9.19,1,quilograma,Cesta Básica,Campinas
+,68,Arroz,Camil,Pão de Açúcar,4.59,1,quilograma,Cesta Básica,Campinas
+,69,Batata,Granel,Pão de Açúcar,8.99,1,quilograma,Cesta Básica,Campinas
+,70,Leite,Italac,Pão de Açúcar,6.19,1,quilograma,Cesta Básica,Campinas
+,71,Café,Pilão,Pão de Açúcar,26.49,250,grama,Cesta Básica,Campinas
+,72,Açúcar,União,Pão de Açúcar,5.49,1,quilograma,Cesta Básica,Campinas
+,73,Farinha de Trigo,Dona Benta,Pão de Açúcar,7.19,1,quilograma,Cesta Básica,Campinas
+,74,Margarina,Qualy,Pão de Açúcar,9.59,100,grama,Cesta Básica,Campinas
+,75,Ovos,Qualitá,Pão de Açúcar,24.9,20,unidade,Cesta Básica,Campinas
+,76,Macarrão,Adria,Pão de Açúcar,5.19,1,quilograma,Cesta Básica,Campinas
+,77,Ervilha,Bonduelle,Pão de Açúcar,4.99,100,grama,Cesta Básica,Campinas
+,78,Farinha de Mandioca,Yoki,Pão de Açúcar,7.99,1,quilograma,Cesta Básica,Campinas
+,79,Sabão em barra,Qualitá,Pão de Açúcar,12.74,900,grama,Limpeza,Campinas
+,80,Sabão em pó,Qualitá,Pão de Açúcar,13.59,"1,6",quilograma,Limpeza,Campinas
+,81,Amaciante de roupas,Comfort,Pão de Açúcar,18.99,1,litro,Cesta Básica,Campinas
+,82,Sal Refinado,Cisne,Pão de Açúcar,04.09,1,quilograma,Cesta Básica,Campinas
+,83,Tomate,Granel,Pão de Açúcar,6.95,1,quilograma,Hortifruti,Campinas
+,84,Alface,Qualitá,Pão de Açúcar,6.99,400,grama,Hortifruti,Campinas
+,85,Cenoura,Qualitá,Pão de Açúcar,5.99,1,quilograma,Hortifruti,Campinas
+,86,Maçã,Turma da Mônica,Pão de Açúcar,19.9,1,quilograma,Hortifruti,Campinas
+,87,Laranja Pêra,Granel,Pão de Açúcar,7.98,1,quilograma,Hortifruti,Campinas
+,88,Banana prata,Granel,Pão de Açúcar,15.9,1,quilograma,Hortifruti,Campinas
+,89,Uva,Qualitá,Pão de Açúcar,16.9,500,grama,Hortifruti,Campinas
+,90,Queijo Minas Frescal,Fazenda Bela Vista,Pão de Açúcar,29.95,500,grama,Outras,Campinas
+,91,Abóbora,Batã,Pão de Açúcar,11.79,1,quilograma,Hortifruti,Campinas
+,92,Feijão,Camil,Savegnago,5.98,1,quilograma,Cesta Básica,Campinas
+,93,Arroz,Camil,Savegnago,21.9,5,quilograma,Cesta Básica,Campinas
+,94,Batata,Granel,Savegnago,4.48,1,quilograma,Hortifruti,Campinas
+,95,Leite,Italac,Savegnago,3.95,1,litro,Cesta Básica,Campinas
+,96,Café,Pilão,Savegnago,31.9,500,grama,Cesta Básica,Campinas
+,97,Açúcar,União,Savegnago,17.7,5,quilograma,Cesta Básica,Campinas
+,98,Farinha de Trigo,Renata,Savegnago,7.55,1,quilograma,Cesta Básica,Campinas
+,99,Margarina,Qualy,Savegnago,7.99,500,grama,Cesta Básica,Campinas
+,100,Ovos,Mantiqueira,Savegnago,15.65,20,unidade,Cesta Básica,Campinas
+,101,Macarrão,Galo,Savegnago,3.39,500,grama,Cesta Básica,Campinas
+,102,Ervilha,Knorr,Savegnago,4.99,290,grama,Cesta Básica,Campinas
+,103,Farinha de Mandioca,Yoki,Savegnago,11.35,500,grama,Cesta Básica,Campinas
+,104,Sabão em barra,Minuano,Savegnago,13.95,500,grama,Limpeza,Campinas
+,105,Sabão em pó,Omo,Savegnago,30.6,"1,6",quilograma,Limpeza,Campinas
+,106,Amaciante de roupas,Ypê,Savegnago,19.85,1,litro,Cesta Básica,Campinas
+,107,Sal Refinado,Cisne,Savegnago,5.75,1,quilograma,Cesta Básica,Campinas
+,108,Tomate,Granel,Savegnago,4.99,1,quilograma,Hortifruti,Campinas
+,109,Alface,Granel,Savegnago,3.75,500,grama,Hortifruti,Campinas
+,110,Cenoura,Granel,Savegnago,2.95,1,quilograma,Hortifruti,Campinas
+,111,Maçã,Turma da Mônica,Savegnago,13.9,1,quilograma,Hortifruti,Campinas
+,112,Laranja Pêra,Granel,Savegnago,8.95,3,quilograma,Hortifruti,Campinas
+,113,Banana prata,Granel,Savegnago,11.95,1,quilograma,Hortifruti,Campinas
+,114,Uva,Green Dreams,Savegnago,12.9,500,grama,Hortifruti,Campinas
+,115,Queijo Minas Padrão,Lacfree,Savegnago,38.76,400,grama,Cesta Básica,Campinas
+,116,Abóbora,Irmãos Pimenta,Savegnago,6.95,700,grama,Hortifruti,Campinas
+,117,Feijão,Camil,Covabra,6.99,1,quilograma,Cesta Básica,Campinas
+,118,Arroz,Camil,Covabra,24.99,5,quilograma,Cesta Básica,Campinas
+,119,Batata,Granel,Covabra,10.9,2,quilograma,Cesta Básica,Campinas
+,120,Leite,Shefa,Covabra,4.49,1,litro,Cesta Básica,Campinas
+,121,Café,3 Corações,Covabra,29.9,500,grama,Cesta Básica,Campinas
+,122,Açúcar,União,Covabra,5.69,1,quilograma,Cesta Básica,Campinas
+,123,Farinha de Trigo,Renata,Covabra,3.89,1,quilograma,Cesta Básica,Campinas
+,124,Margarina,Claybom,Covabra,5.99,500,grama,Cesta Básica,Campinas
+,125,Ovos,Jovanil,Covabra,17.9,20,unidade,Cesta Básica,Campinas
+,126,Macarrão,Renata,Covabra,4.99,500,grama,Cesta Básica,Campinas
+,127,Ervilha,Quero,Covabra,4.19,170,grama,Cesta Básica,Campinas
+,128,Farinha de Mandioca,Yoki,Covabra,11.89,500,grama,Cesta Básica,Campinas
+,129,Sabão em barra,Ypê,Covabra,15.9,800,grama,Limpeza,Campinas
+,130,Sabão em pó,Tixan Ypê,Covabra,19.9,"2,2",quilograma,Limpeza,Campinas
+,131,Amaciante de roupas,Ypê,Covabra,8.49,2,litro,Cesta Básica,Campinas
+,132,Sal Refinado,Cisne,Covabra,4.49,1,quilograma,Cesta Básica,Campinas
+,133,Tomate,Granel,Covabra,15.56,1,quilograma,Hortifruti,Campinas
+,134,Alface,Sítio Novo Mundo,Covabra,6.99,1,pacote,Hortifruti,Campinas
+,135,Cenoura,Granel,Covabra,6.97,1,quilograma,Hortifruti,Campinas
+,136,Maçã,Turma da Mônica,Covabra,18.9,1,quilograma,Hortifruti,Campinas
+,137,Laranja Pêra,Granel,Covabra,5.98,1,quilograma,Hortifruti,Campinas
+,138,Banana prata,Granel,Covabra,12.89,1,quilograma,Hortifruti,Campinas
+,139,Uva,Natural Flavors,Covabra,8.99,500,grama,Hortifruti,Campinas
+,140,Queijo Minas Frescal,Bandeira,Covabra,32.18,520,grama,Cesta Básica,Campinas
+,141,Abóbora,Granel,Covabra,6.98,1,quilograma,Hortifruti,Campinas
+,142,Feijão,Divino,Enxuto,4.99,1,quilograma,Cesta Básica,Campinas
+,143,Arroz,Broto Legal,Enxuto,12.99,2,quilograma,Cesta Básica,Campinas
+,144,Batata,Granel,Enxuto,4.69,1,quilograma,Hortifruti,Campinas
+,145,Leite,Xandô,Enxuto,09.09,1,litro,Cesta Básica,Campinas
+,146,Café,Pilão,Enxuto,36.99,500,grama,Cesta Básica,Campinas
+,147,Açúcar,União,Enxuto,4.99,1,quilograma,Cesta Básica,Campinas
+,148,Farinha de Trigo,Renata,Enxuto,7.35,1,quilograma,Cesta Básica,Campinas
+,149,Margarina,Doriana,Enxuto,7.69,500,grama,Cesta Básica,Campinas
+,150,Ovos,Tonon,Enxuto,18.9,20,unidade,Cesta Básica,Campinas
+,151,Macarrão,Galo,Enxuto,4.79,500,grama,Cesta Básica,Campinas
+,152,Ervilha,Quero,Enxuto,5.6,170,grama,Cesta Básica,Campinas
+,153,Farinha de Mandioca,Yoki,Enxuto,9.99,500,grama,Cesta Básica,Campinas
+,154,Sabão em barra,Ypê,Enxuto,17.59,800,grama,Limpeza,Campinas
+,155,Sabão em pó,Omo,Enxuto,13.99,800,grama,Limpeza,Campinas
+,156,Amaciante de roupas,Ypê,Enxuto,12.39,500,mililitro,Cesta Básica,Campinas
+,157,Sal Refinado,Cisne,Enxuto,3.99,1,quilograma,Cesta Básica,Campinas
+,158,Tomate,Granel,Enxuto,5.99,500,grama,Hortifruti,Campinas
+,159,Alface,Granel,Enxuto,5.75,1,pacote,Hortifruti,Campinas
+,160,Cenoura,Granel,Enxuto,3.99,400,grama,Hortifruti,Campinas
+,161,Maçã,Turma da Mônica,Enxuto,20.9,1,quilograma,Hortifruti,Campinas
+,162,Laranja Pêra,Granel,Enxuto,6.99,1,quilograma,Hortifruti,Campinas
+,163,Banana prata,Granel,Enxuto,9.9,1,quilograma,Hortifruti,Campinas
+,164,Uva,Granel,Enxuto,19.9,500,grama,Hortifruti,Campinas
+,165,Queijo Minas Padrão,Scala,Enxuto,43.94,500,grama,Cesta Básica,Campinas
+,166,Abóbora,Granel,Enxuto,7.69,1,quilograma,Hortifruti,Campinas
+,167,,,,,,,,
+,168,,,,,,,,
+,169,,,,,,,,
+,170,,,,,,,,
+,171,,,,,,,,
+,172,,,,,,,,
+,173,,,,,,,,
+,174,,,,,,,,
+,175,,,,,,,,
+,176,,,,,,,,
+,177,,,,,,,,
+,178,,,,,,,,
+,179,,,,,,,,
+,180,,,,,,,,
+,181,,,,,,,,
+,182,,,,,,,,
+,183,,,,,,,,
+,184,,,,,,,,
+,185,,,,,,,,
+,186,,,,,,,,
+,187,,,,,,,,
+,188,,,,,,,,
+,189,,,,,,,,
+,190,,,,,,,,
+,191,,,,,,,,
+,192,,,,,,,,
+,193,,,,,,,,
+,194,,,,,,,,
+,195,,,,,,,,
+,196,,,,,,,,
+,197,,,,,,,,
+,198,,,,,,,,
+,199,,,,,,,,
+,200,,,,,,,,
+,201,,,,,,,,
+,202,,,,,,,,
+,203,,,,,,,,
+,204,,,,,,,,
+,205,,,,,,,,
+,206,,,,,,,,
+,207,,,,,,,,
+,208,,,,,,,,
+,209,,,,,,,,
+,210,,,,,,,,
+,211,,,,,,,,
+,212,,,,,,,,
+,213,,,,,,,,
+,214,,,,,,,,
+,215,,,,,,,,
+,216,,,,,,,,
+,217,,,,,,,,
+,218,,,,,,,,
+,219,,,,,,,,
+,220,,,,,,,,
+,221,,,,,,,,
+,222,,,,,,,,
+,223,,,,,,,,
+,224,,,,,,,,
+,225,,,,,,,,
+,226,,,,,,,,
+,227,,,,,,,,
+,228,,,,,,,,
+,229,,,,,,,,

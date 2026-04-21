@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Comparou tá Barato</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Comparou tá Barato</h1>
+    <div class="topbar">
+      <div class="region-tag">
+        <label for="regiaoSel" class="sr-only">Região</label>
+        <span aria-hidden="true">📍 Região</span>
+        <select id="regiaoSel" aria-label="Selecionar região">
+          <option>Todas</option>
+          <option>Campinas</option>
+          <option>Americana</option>
+          <option selected>Monte Mor</option>
+          <option>Itapira</option>
+        </select>
+      </div>
+      <div class="auth">
+        <span id="authStatus" class="badge" style="display:none;">Logado</span>
+        <button id="btnLogin" class="btn-link" type="button" aria-haspopup="dialog" aria-controls="loginModal">Entrar</button>
+        <button id="btnLogout" class="btn-link" type="button" style="display:none;">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- FILTROS -->
+  <section class="controls" aria-label="Filtros e ordenação">
+    <div>
+      <label for="busca" class="sr-only">Buscar produto ou mercado</label>
+      <input id="busca" type="text" placeholder="Buscar produto ou mercado..." />
+    </div>
+    <div>
+      <label for="categoria" class="sr-only">Categoria</label>
+      <select id="categoria">
+        <option value="">Todas as categorias</option>
+        <option value="cesta_basica">Cesta básica</option>
+        <option value="hortifruti">Hortifruti</option>
+        <option value="limpeza">Limpeza</option>
+        <option value="outras">Outras</option>
+      </select>
+    </div>
+    <div>
+      <label for="ordenacao" class="sr-only">Ordenação</label>
+      <select id="ordenacao">
+        <option value="preco_asc">Preço: menor → maior</option>
+        <option value="preco_desc">Preço: maior → menor</option>
+        <option value="loja_az">Loja: A → Z</option>
+        <option value="loja_za">Loja: Z → A</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- BOTÃO INDICADORES -->
+  <div class="container">
+    <button id="btnToggleIndicadores" class="btn-primary" type="button" aria-expanded="false" aria-controls="indicadoresWrap">📊 Mostrar Indicadores</button>
+  </div>
+
+  <!-- BLOQUEIO DE CADASTRO SE REGIÃO = TODAS -->
+  <div id="formBlocked" class="alert" style="display:none;" role="status" aria-live="polite">
+    Selecione uma <b>região específica</b> para cadastrar promoções.  
+    A opção <b>Todas</b> é apenas para visualizar indicadores e produtos.
+  </div>
+
+  <!-- FORMULÁRIO DE CADASTRO -->
+  <form id="form" class="form" style="display:none;" aria-labelledby="formTitle">
+    <h2 id="formTitle" class="sr-only">Cadastrar promoção</h2>
+    <div class="grid">
+      <div>
+        <label for="f_product">Produto</label>
+        <input id="f_product"  placeholder="Produto *" />
+      </div>
+      <div>
+        <label for="f_brand">Marca</label>
+        <input id="f_brand"    placeholder="Marca" />
+      </div>
+      <div>
+        <label for="f_store">Loja</label>
+        <input id="f_store" list="d_lojas" placeholder="Loja * (selecione ou digite)" />
+        <datalist id="d_lojas"></datalist>
+      </div>
+      <div>
+        <label for="f_price">Preço</label>
+        <input id="f_price"    placeholder="Preço * (ex.: 5.99)" inputmode="decimal" />
+      </div>
+      <div>
+        <label for="f_unit">Unidade</label>
+        <input id="f_unit"     placeholder="Unidade * (ex.: un, kg)" />
+      </div>
+      <div>
+        <label for="f_category">Categoria</label>
+        <select id="f_category">
+          <option value="">Categoria *</option>
+          <option value="cesta_basica">Cesta básica</option>
+          <option value="hortifruti">Hortifruti</option>
+          <option value="limpeza">Limpeza</option>
+          <option value="outras">Outras</option>
+        </select>
+      </div>
+      <div>
+        <label for="f_region">Região selecionada</label>
+        <input id="f_region" value="Monte Mor" disabled />
+      </div>
+    </div>
+    <button type="submit">Cadastrar promoção</button>
+  </form>
+
+  <!-- ===================== INDICADORES ===================== -->
+  <div id="indicadoresWrap" class="collapsible" style="display:none;">
+    <h2 class="section-title">Indicadores Quantitativos Gerais e Preço</h2>
+    <div id="stats" class="stats"></div>
+
+    <h2 class="section-title">Indicadores de Preço</h2>
+    <div class="cards">
+      <article class="cardbox">
+        <header class="card-title">Comparativo Preço Médio Por Região</header>
+        <div id="cmpRegioes"></div>
+      </article>
+
+      <article class="cardbox">
+        <header class="card-title">Comparativo Preço Médio Por Loja Na Região</header>
+        <div id="cmpLojas"></div>
+      </article>
+
+      <article class="cardbox">
+        <header class="card-title">Comparativo Preço Médio Por Categoria Na Região</header>
+        <div id="cmpCategorias"></div>
+      </article>
+
+      <!-- TOP 3 em LINHAS -->
+      <article class="cardbox cardbox--wide">
+        <header class="card-title">Top 3 Produtos Mais Baratos Por Categoria</header>
+        <p class="muted small">Região atual</p>
+        <div id="top3" class="t3list"></div>
+      </article>
+    </div>
+
+    <h2 class="section-title">Gráficos</h2>
+    <div class="cards">
+      <article class="cardbox">
+        <header class="card-title">Preço Médio por Região</header>
+        <div class="chart-wrap"><canvas id="chartRegioes" aria-label="Gráfico de preço médio por região" role="img"></canvas></div>
+      </article>
+
+      <article class="cardbox">
+        <header class="card-title">Preço Médio por Loja na região</header>
+        <div class="chart-wrap"><canvas id="chartLojas" aria-label="Gráfico de preço médio por loja" role="img"></canvas></div>
+      </article>
+
+      <article class="cardbox">
+        <header class="card-title">Preço Médio por Categoria na região</header>
+        <div class="chart-wrap"><canvas id="chartCategorias" aria-label="Gráfico de preço médio por categoria" role="img"></canvas></div>
+      </article>
+    </div>
+  </div>
+  <!-- =================== /INDICADORES ====================== -->
+
+  <div id="lista" class="list"></div>
+  <div id="vazio" class="empty" style="display:none;">Nenhum item encontrado na região selecionada.</div>
+
+  <!-- Paginação -->
+  <nav class="pagination" aria-label="Paginação de resultados">
+    <button id="prevPage" type="button">← Anterior</button>
+    <span id="pageInfo">Página 1</span>
+    <button id="nextPage" type="button">Próxima →</button>
+  </nav>
+
+  <!-- Modal de login -->
+  <div id="loginModal" class="modal-bg" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <h3 id="loginTitle">Entrar</h3>
+      <div class="field">
+        <label for="loginUser">Usuário</label>
+        <input id="loginUser" placeholder="admin" autocomplete="username" autocapitalize="none" />
+      </div>
+      <div class="field">
+        <label for="loginPass">Senha</label>
+        <input id="loginPass" type="password" placeholder="1234" autocomplete="current-password" />
+      </div>
+      <div class="rowbtn">
+        <button class="confirm" id="doLogin" type="button">Entrar</button>
+        <button class="cancel" id="cancelLogin" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
