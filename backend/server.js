@@ -29,14 +29,15 @@ const stores = readStores();
 // Conexão PostgreSQL (Render fornece DATABASE_URL)
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  console.error("DATABASE_URL não definida nas variáveis de ambiente.");
-  process.exit(1);
+  console.warn("DATABASE_URL não definida nas variáveis de ambiente. Rotas de banco ficarão indisponíveis.");
 }
 
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+const pool = DATABASE_URL
+  ? new Pool({
+      connectionString: DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+    })
+  : null;
 let databaseReady = false;
 
 // ===== Aplicação Express
@@ -90,6 +91,7 @@ function auth(req, res, next) {
 // ===== Healthcheck (Render)
 app.get("/healthz", async (req, res) => {
   try {
+    if (!pool) return res.json({ ok: true, database: false });
     await pool.query("select 1");
     res.json({ ok: true });
   } catch (e) {
@@ -481,8 +483,13 @@ app.use(express.static(path.join(__dirname, "public")));
 (async () => {
   try {
     try {
-      await ensureSchema();
-      databaseReady = true;
+      if (pool) {
+        await ensureSchema();
+        databaseReady = true;
+      } else {
+        databaseReady = false;
+        console.warn("Banco de dados não configurado; iniciando apenas o frontend e rotas sem banco.");
+      }
     } catch (e) {
       databaseReady = false;
       console.error("Banco de dados indisponível; iniciando apenas o frontend e rotas sem banco:", e.message);
