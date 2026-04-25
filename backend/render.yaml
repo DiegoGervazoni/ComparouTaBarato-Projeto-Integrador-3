@@ -11,15 +11,8 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: comparou-ta-barato-db
-          property: connectionString
+        sync: false
       - key: ADMIN_USER
         sync: false
       - key: ADMIN_PASS
         sync: false
-
-databases:
-  - name: comparou-ta-barato-db
-    plan: free
-    databaseName: comparou
