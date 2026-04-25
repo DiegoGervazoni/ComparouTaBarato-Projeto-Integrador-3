@@ -37,6 +37,7 @@ const pool = new Pool({
   connectionString: DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
+let databaseReady = false;
 
 // ===== Aplicação Express
 const app = express();
@@ -92,7 +93,7 @@ app.get("/healthz", async (req, res) => {
     await pool.query("select 1");
     res.json({ ok: true });
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
+    res.json({ ok: true, database: false, error: e.message });
   }
 });
 
@@ -289,6 +290,10 @@ function addDistance(reading, lat, lng) {
 // Listagem com filtros opcionais
 app.get("/promotions", async (req, res) => {
   try {
+    if (!databaseReady) {
+      return res.json([]);
+    }
+
     const { region, q } = req.query;
 
     const params = [];
@@ -404,6 +409,8 @@ app.get("/iot/status", (req, res) => {
 // Criar
 app.post("/promotions", auth, async (req, res) => {
   try {
+    if (!databaseReady) return res.status(503).json({ error: "Banco de dados indisponível" });
+
     const p = sanitizePromotion(req.body || {});
     if (!validPromotion(p)) return res.status(400).json({ error: "Campos obrigatórios ausentes" });
 
@@ -425,6 +432,8 @@ app.post("/promotions", auth, async (req, res) => {
 // Atualizar
 app.put("/promotions/:id", auth, async (req, res) => {
   try {
+    if (!databaseReady) return res.status(503).json({ error: "Banco de dados indisponível" });
+
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "ID inválido" });
 
@@ -451,6 +460,8 @@ app.put("/promotions/:id", auth, async (req, res) => {
 // Deletar
 app.delete("/promotions/:id", auth, async (req, res) => {
   try {
+    if (!databaseReady) return res.status(503).json({ error: "Banco de dados indisponível" });
+
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "ID inválido" });
 
@@ -469,7 +480,14 @@ app.use(express.static(path.join(__dirname, "public")));
 // ===== Iniciar servidor
 (async () => {
   try {
-    await ensureSchema();
+    try {
+      await ensureSchema();
+      databaseReady = true;
+    } catch (e) {
+      databaseReady = false;
+      console.error("Banco de dados indisponível; iniciando apenas o frontend e rotas sem banco:", e.message);
+    }
+
     app.listen(PORT, HOST, () => {
       console.log(`Servidor rodando em http://${HOST}:${PORT}`);
     });
