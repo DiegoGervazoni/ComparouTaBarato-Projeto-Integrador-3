@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: comparou-ta-barato
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: comparou-ta-barato-db
+          property: connectionString
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASS
+        sync: false
+
+databases:
+  - name: comparou-ta-barato-db
+    plan: free
+    databaseName: comparou
