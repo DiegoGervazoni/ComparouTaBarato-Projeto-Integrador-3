@@ -61,6 +61,21 @@
     <button id="btnToggleIndicadores" class="btn-primary" type="button" aria-expanded="false" aria-controls="indicadoresWrap">📊 Mostrar Indicadores</button>
   </div>
 
+  <section class="iot-panel" aria-labelledby="iotTitle">
+    <div class="iot-head">
+      <div>
+        <p class="muted small">Monitoramento local</p>
+        <h2 id="iotTitle" class="section-title section-title--inline">Geolocalização + IoT</h2>
+      </div>
+      <div class="iot-actions">
+        <button id="btnUseLocation" class="btn" type="button">Usar minha localização</button>
+        <span id="iotLocationStatus" class="muted small">Sem localização</span>
+      </div>
+    </div>
+    <div id="iotSummary" class="iot-summary"></div>
+    <div id="iotList" class="iot-list"></div>
+  </section>
+
   <!-- BLOQUEIO DE CADASTRO SE REGIÃO = TODAS -->
   <div id="formBlocked" class="alert" style="display:none;" role="status" aria-live="polite">
     Selecione uma <b>região específica</b> para cadastrar promoções.  

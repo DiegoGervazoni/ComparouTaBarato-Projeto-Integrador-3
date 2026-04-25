@@ -59,10 +59,41 @@ function topNBaratosPorCategoria(lista, n = 3) {
   return out;
 }
 
+function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
+  const coords = [lat1, lon1, lat2, lon2].map(Number);
+  if (coords.some(v => !Number.isFinite(v))) return null;
+
+  const [aLat, aLon, bLat, bLon] = coords;
+  const R = 6371;
+  const dLat = (bLat - aLat) * Math.PI / 180;
+  const dLon = (bLon - aLon) * Math.PI / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(aLat * Math.PI / 180) * Math.cos(bLat * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+function resumirIot(readings = []) {
+  const total = readings.length;
+  const critical = readings.filter(r => r.status === "critical").length;
+  const attention = readings.filter(r => r.status === "attention").length;
+  const ok = readings.filter(r => r.status === "ok").length;
+  const avgQueue = total
+    ? readings.reduce((sum, r) => sum + (Number(r.queueMinutes) || 0), 0) / total
+    : 0;
+
+  return { total, ok, attention, critical, avgQueue };
+}
+
 module.exports = {
   media,
   filtrarRegiao,
   porChave,
   ordenar,
-  topNBaratosPorCategoria
+  topNBaratosPorCategoria,
+  calcularDistanciaKm,
+  resumirIot
 };

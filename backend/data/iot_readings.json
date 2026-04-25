@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2026-04-25T13:36:52+00:00",
+  "source": "scripts/fake_iot.py",
+  "readings": [
+    {
+      "store": "Delanana",
+      "region": "Itapira",
+      "lat": -22.435,
+      "lng": -46.823,
+      "queueMinutes": 7,
+      "stockAlerts": 6,
+      "freezerCelsius": 3.3,
+      "footTraffic": 82,
+      "energyKw": 20.4,
+      "status": "critical"
+    },
+    {
+      "store": "Geoli",
+      "region": "Itapira",
+      "lat": -22.438,
+      "lng": -46.825,
+      "queueMinutes": 2,
+      "stockAlerts": 5,
+      "freezerCelsius": 2.2,
+      "footTraffic": 12,
+      "energyKw": 19.6,
+      "status": "attention"
+    },
+    {
+      "store": "Antonelli",
+      "region": "Itapira",
+      "lat": -22.436,
+      "lng": -46.82,
+      "queueMinutes": 8,
+      "stockAlerts": 5,
+      "freezerCelsius": 3.8,
+      "footTraffic": 26,
+      "energyKw": 28.0,
+      "status": "attention"
+    },
+    {
+      "store": "Savegnago",
+      "region": "Campinas",
+      "lat": -22.431,
+      "lng": -46.822,
+      "queueMinutes": 11,
+      "stockAlerts": 4,
+      "freezerCelsius": 5.4,
+      "footTraffic": 19,
+      "energyKw": 19.7,
+      "status": "critical"
+    },
+    {
+      "store": "Pão de Açúcar",
+      "region": "Campinas",
+      "lat": -22.428,
+      "lng": -46.819,
+      "queueMinutes": 2,
+      "stockAlerts": 1,
+      "freezerCelsius": 3.1,
+      "footTraffic": 83,
+      "energyKw": 22.0,
+      "status": "ok"
+    }
+  ]
+}

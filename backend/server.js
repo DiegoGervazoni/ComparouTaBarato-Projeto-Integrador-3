@@ -8,17 +8,23 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
-const stores = require("./stores.json");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const { Pool } = require("pg");
+const { calcularDistanciaKm, resumirIot } = require("./src/utils");
 
 
 // ===== Configurações de ambiente
 const PORT = Number(process.env.PORT) || 8081;
 const HOST = "0.0.0.0";
+const IOT_DATA_PATH = path.join(__dirname, "data", "iot_readings.json");
+const STORE_DATA_PATHS = [
+  path.join(__dirname, "stores.json"),
+  path.join(__dirname, "stores", "stores.json"),
+];
+const stores = readStores();
 
 // Conexão PostgreSQL (Render fornece DATABASE_URL)
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -243,16 +249,40 @@ function validPromotion(p) {
 }
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-  const R = 6371; // km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
+  return calcularDistanciaKm(lat1, lon1, lat2, lon2);
+}
 
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+function readStores() {
+  const filePath = STORE_DATA_PATHS.find((candidate) => fs.existsSync(candidate));
+  if (!filePath) return [];
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
 
-  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+function readIotPayload() {
+  if (!fs.existsSync(IOT_DATA_PATH)) {
+    return {
+      generatedAt: null,
+      source: null,
+      readings: [],
+    };
+  }
+
+  const raw = fs.readFileSync(IOT_DATA_PATH, "utf8");
+  const payload = JSON.parse(raw);
+  return {
+    generatedAt: payload.generatedAt || null,
+    source: payload.source || null,
+    readings: Array.isArray(payload.readings) ? payload.readings : [],
+  };
+}
+
+function addDistance(reading, lat, lng) {
+  const distanceKm = calcularDistancia(reading.lat, reading.lng, lat, lng);
+  if (distanceKm == null) return reading;
+  return {
+    ...reading,
+    distanceKm: Number(distanceKm.toFixed(2)),
+  };
 }
 
 // ===== Rotas principais
@@ -330,6 +360,44 @@ app.get("/stores/near", (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Erro ao buscar lojas próximas" });
+  }
+});
+
+app.get("/iot/status", (req, res) => {
+  try {
+    const { lat, lng, region } = req.query;
+    const hasCoords = lat != null && lng != null;
+    const userLat = Number(lat);
+    const userLng = Number(lng);
+
+    if (hasCoords && (!Number.isFinite(userLat) || !Number.isFinite(userLng))) {
+      return res.status(400).json({ error: "Latitude ou longitude inválidas" });
+    }
+
+    const payload = readIotPayload();
+    let readings = payload.readings;
+
+    if (region && region !== "Todas") {
+      readings = readings.filter((item) =>
+        String(item.region || "").toLowerCase() === String(region).toLowerCase()
+      );
+    }
+
+    if (hasCoords) {
+      readings = readings
+        .map((item) => addDistance(item, userLat, userLng))
+        .sort((a, b) => (a.distanceKm ?? Number.POSITIVE_INFINITY) - (b.distanceKm ?? Number.POSITIVE_INFINITY));
+    }
+
+    res.json({
+      generatedAt: payload.generatedAt,
+      source: payload.source,
+      summary: resumirIot(readings),
+      readings,
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Erro ao buscar status IoT" });
   }
 });
 

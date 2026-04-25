@@ -9,6 +9,7 @@ let dadosOriginais = [];
 let paginaAtual = 1;
 let editingId = null;
 let indicadoresVisiveis = false;
+let userCoords = null;
 
 // A11y helpers
 let lastFocusedBeforeModal = null;
@@ -17,6 +18,7 @@ const qs = s => document.querySelector(s);
 const moeda = v => (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const leg   = { cesta_basica:"Cesta básica", hortifruti:"Hortifruti", limpeza:"Limpeza", outras:"Outras" };
 const authedHeaders = () => token ? { "Authorization":"Bearer " + token, "Content-Type":"application/json" } : { "Content-Type":"application/json" };
+const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[c]));
 
 // Charts refs
 let chartRegioes = null, chartLojas = null, chartCategorias = null;
@@ -124,6 +126,102 @@ function topNBaratosPorCategoria(lista, n=3){
     out[cat] = ord;
   }
   return out;
+}
+
+// ===== IoT fake + geolocalização
+const iotStatusLabel = {
+  ok: "Normal",
+  attention: "Atenção",
+  critical: "Crítico"
+};
+
+function renderIot(payload){
+  const summaryEl = qs("#iotSummary");
+  const listEl = qs("#iotList");
+  if (!summaryEl || !listEl) return;
+
+  const readings = Array.isArray(payload?.readings) ? payload.readings : [];
+  const summary = payload?.summary || {};
+  const generatedAt = payload?.generatedAt
+    ? new Date(payload.generatedAt).toLocaleString("pt-BR", { dateStyle:"short", timeStyle:"short" })
+    : "sem atualização";
+
+  summaryEl.innerHTML = [
+    `<div class="iot-kpi"><span>Lojas</span><strong>${summary.total || readings.length}</strong></div>`,
+    `<div class="iot-kpi ok"><span>Normal</span><strong>${summary.ok || 0}</strong></div>`,
+    `<div class="iot-kpi attention"><span>Atenção</span><strong>${summary.attention || 0}</strong></div>`,
+    `<div class="iot-kpi critical"><span>Crítico</span><strong>${summary.critical || 0}</strong></div>`,
+    `<div class="iot-kpi"><span>Fila média</span><strong>${Number(summary.avgQueue || 0).toFixed(1)} min</strong></div>`
+  ].join("");
+
+  if (!readings.length) {
+    listEl.innerHTML = `<div class="empty compact">Nenhuma leitura IoT para a região selecionada.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = readings.map(item => {
+    const status = item.status || "ok";
+    const distance = Number.isFinite(item.distanceKm) ? `${item.distanceKm.toFixed(2)} km` : generatedAt;
+    return `
+      <article class="iot-card ${status}">
+        <div class="iot-card-top">
+          <div>
+            <h3>${escapeHTML(item.store)}</h3>
+            <p>${escapeHTML(item.region)} · ${distance}</p>
+          </div>
+          <span class="iot-pill ${status}">${iotStatusLabel[status] || status}</span>
+        </div>
+        <div class="iot-metrics">
+          <span><b>${Number(item.queueMinutes || 0)}</b> min fila</span>
+          <span><b>${Number(item.stockAlerts || 0)}</b> alertas</span>
+          <span><b>${Number(item.freezerCelsius || 0).toFixed(1)}°C</b> freezer</span>
+          <span><b>${Number(item.footTraffic || 0)}</b> fluxo</span>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+async function carregarIot(){
+  const params = new URLSearchParams();
+  if (regiaoSel && regiaoSel !== "Todas") params.set("region", regiaoSel);
+  if (userCoords) {
+    params.set("lat", userCoords.lat);
+    params.set("lng", userCoords.lng);
+  }
+
+  try {
+    const r = await fetch(`${API}/iot/status?${params.toString()}`);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "Erro ao carregar IoT");
+    renderIot(d);
+  } catch (e) {
+    const listEl = qs("#iotList");
+    if (listEl) listEl.innerHTML = `<div class="empty compact">${escapeHTML(e.message)}</div>`;
+  }
+}
+
+function usarGeolocalizacao(){
+  const status = qs("#iotLocationStatus");
+  if (!navigator.geolocation) {
+    if (status) status.textContent = "Geolocalização indisponível";
+    return;
+  }
+
+  if (status) status.textContent = "Localizando...";
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      userCoords = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude
+      };
+      if (status) status.textContent = "Localização ativa";
+      carregarIot();
+    },
+    () => {
+      if (status) status.textContent = "Localização não autorizada";
+    },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+  );
 }
 
 // ===== Indicadores e Gráficos
@@ -529,6 +627,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       updateFormRegionState();
       popularLojasFormulario();
       aplicarFiltros();
+      carregarIot();
       if (indicadoresVisiveis) renderIndicadoresPreco();
     });
   }
@@ -554,6 +653,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   await checkLogin();
   updateAuthUI();
   await carregar();
+  await carregarIot();
 
   const fRegBoot = qs("#f_region"); if (fRegBoot) fRegBoot.value = regiaoSel;
   updateSubmitLabel();
@@ -589,6 +689,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   qs("#busca").addEventListener("input", aplicarFiltros);
   qs("#prevPage").addEventListener("click", ()=>{ paginaAtual--; render(aplicarFiltrosRet()); });
   qs("#nextPage").addEventListener("click", ()=>{ paginaAtual++; render(aplicarFiltrosRet()); });
+  qs("#btnUseLocation").addEventListener("click", usarGeolocalizacao);
 
   // Login UI
   qs("#btnLogin").addEventListener("click", openLogin);

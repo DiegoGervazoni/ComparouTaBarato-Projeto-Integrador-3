@@ -6,7 +6,9 @@ const {
   filtrarRegiao,
   porChave,
   ordenar,
-  topNBaratosPorCategoria
+  topNBaratosPorCategoria,
+  calcularDistanciaKm,
+  resumirIot
 } = utils;
 
 const dados = [
@@ -84,5 +86,33 @@ describe("topNBaratosPorCategoria", () => {
         expect(arr[i - 1].price <= arr[i].price).toBe(true);
       }
     }
+  });
+});
+
+describe("calcularDistanciaKm", () => {
+  it("calcula distancia aproximada entre duas coordenadas", () => {
+    const km = calcularDistanciaKm(-22.435, -46.823, -22.431, -46.822);
+    expect(Number(km.toFixed(2))).toBeGreaterThan(0);
+    expect(Number(km.toFixed(2))).toBeLessThan(1);
+  });
+
+  it("retorna null para coordenadas invalidas", () => {
+    expect(calcularDistanciaKm("abc", -46.823, -22.431, -46.822)).toBe(null);
+  });
+});
+
+describe("resumirIot", () => {
+  it("resume leituras por status e fila media", () => {
+    const summary = resumirIot([
+      { status: "ok", queueMinutes: 2 },
+      { status: "attention", queueMinutes: 8 },
+      { status: "critical", queueMinutes: 12 },
+    ]);
+
+    expect(summary.total).toBe(3);
+    expect(summary.ok).toBe(1);
+    expect(summary.attention).toBe(1);
+    expect(summary.critical).toBe(1);
+    expect(Number(summary.avgQueue.toFixed(1))).toBe(7.3);
   });
 });
