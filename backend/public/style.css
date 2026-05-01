@@ -64,6 +64,16 @@ h1{margin:0 0 10px;font-size:28px}
 .iot-kpi.ok strong{color:#0a7a28}
 .iot-kpi.attention strong{color:#b45309}
 .iot-kpi.critical strong{color:#b91c1c}
+.iot-legend{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.iot-legend-title{color:#374151;font-size:12px;font-weight:900;text-transform:uppercase}
+.iot-legend-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.iot-legend-item{display:grid;grid-template-columns:auto 1fr;gap:8px;min-width:0}
+.iot-legend-item strong{display:block;color:#374151;font-size:13px;line-height:1.2}
+.iot-legend-item p{margin:2px 0 0;color:var(--muted);font-size:12px;line-height:1.35}
+.iot-dot{width:10px;height:10px;border-radius:999px;margin-top:3px}
+.iot-legend-item.ok .iot-dot{background:#16a34a;box-shadow:0 0 0 3px #dcfce7}
+.iot-legend-item.attention .iot-dot{background:#f59e0b;box-shadow:0 0 0 3px #fef3c7}
+.iot-legend-item.critical .iot-dot{background:#dc2626;box-shadow:0 0 0 3px #fee2e2}
 .iot-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:12px}
 .iot-card{border:1px solid var(--line);border-left-width:5px;border-radius:10px;padding:12px;background:#fff}
 .iot-card.ok{border-left-color:#16a34a}
@@ -157,4 +167,5 @@ h1{margin:0 0 10px;font-size:28px}
 
 /* Responsivo */
 @media (max-width:980px){ .controls{grid-template-columns:1fr 1fr} }
+@media (max-width:720px){ .iot-legend{grid-template-columns:1fr} .iot-legend-grid{grid-template-columns:1fr} }
 @media (max-width:560px){ .controls{grid-template-columns:1fr} .iot-head{flex-direction:column} .iot-actions{justify-content:flex-start} }
