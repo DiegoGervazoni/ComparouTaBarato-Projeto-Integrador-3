@@ -184,8 +184,8 @@ function renderIot(payload){
           </span>
           <span class="iot-metric">
             <b>${Number(item.stockAlerts || 0)}</b>
-            <span>Estoque baixo</span>
-            <small>Alertas de reposição nas prateleiras</small>
+            <span>Alertas de estoque</span>
+            <small>Produtos com risco de faltar nas prateleiras</small>
           </span>
           <span class="iot-metric">
             <b>${Number(item.freezerCelsius || 0).toFixed(1)}°C</b>
@@ -194,8 +194,8 @@ function renderIot(payload){
           </span>
           <span class="iot-metric">
             <b>${Number(item.footTraffic || 0)}</b>
-            <span>Movimento na loja</span>
-            <small>Estimativa de clientes circulando</small>
+            <span>Fluxo de clientes</span>
+            <small>Pessoas circulando na loja no momento</small>
           </span>
         </div>
       </article>`;
