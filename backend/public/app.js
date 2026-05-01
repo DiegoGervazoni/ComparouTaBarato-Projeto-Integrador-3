@@ -1,14 +1,21 @@
 // ===== Config/estado
 const API = window.location.origin;
 const itensPorPagina = 10;
-const REGIOES = ["Todas","Campinas","Americana","Monte Mor","Itapira"];
-let regiaoSel = localStorage.getItem("regiaoCTB") || "Monte Mor";
+const REGIOES = ["Todas","Campinas","Americana","Itapira"];
+const CIDADES = REGIOES.filter(regiao => regiao !== "Todas");
+const REGIAO_PADRAO = "Campinas";
+let regiaoSel = localStorage.getItem("regiaoCTB") || REGIAO_PADRAO;
+if (!REGIOES.includes(regiaoSel)) {
+  regiaoSel = REGIAO_PADRAO;
+  localStorage.setItem("regiaoCTB", regiaoSel);
+}
 
 let token = localStorage.getItem("token") || null; // login só habilita cadastro/edição
 let dadosOriginais = [];
 let paginaAtual = 1;
 let editingId = null;
 let indicadoresVisiveis = false;
+let userCoords = null;
 
 // A11y helpers
 let lastFocusedBeforeModal = null;
@@ -17,6 +24,7 @@ const qs = s => document.querySelector(s);
 const moeda = v => (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const leg   = { cesta_basica:"Cesta básica", hortifruti:"Hortifruti", limpeza:"Limpeza", outras:"Outras" };
 const authedHeaders = () => token ? { "Authorization":"Bearer " + token, "Content-Type":"application/json" } : { "Content-Type":"application/json" };
+const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[c]));
 
 // Charts refs
 let chartRegioes = null, chartLojas = null, chartCategorias = null;
@@ -102,9 +110,16 @@ function renderStats(lista){
 
 // ===== Helpers de dados
 function media(arr){ const v=arr.map(x=>+x.price).filter(Number.isFinite); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : 0; }
+function normalizarRegiaoCliente(value){
+  const normalized = String(value ?? "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return CIDADES.find(regiao => regiao.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized) || null;
+}
+function regiaoValida(value){ return !!normalizarRegiaoCliente(value); }
 function filtrarRegiao(lista, r){
-  if (!r || r === "Todas") return [...lista];
-  return lista.filter(p => (p.region||"").toLowerCase() === String(r).toLowerCase());
+  if (!r || r === "Todas") return lista.filter(p => regiaoValida(p.region));
+  const regiao = normalizarRegiaoCliente(r);
+  if (!regiao) return [];
+  return lista.filter(p => normalizarRegiaoCliente(p.region) === regiao);
 }
 function porChave(lista, chave){
   const map = new Map();
@@ -124,6 +139,184 @@ function topNBaratosPorCategoria(lista, n=3){
     out[cat] = ord;
   }
   return out;
+}
+
+// ===== IoT fake + geolocalização
+const iotStatusLabel = {
+  ok: "Normal",
+  attention: "Atenção",
+  critical: "Crítico"
+};
+
+const REGION_CENTERS = {
+  Campinas: { lat: -22.9056, lng: -47.0608 },
+  Americana: { lat: -22.7392, lng: -47.3314 },
+  Itapira: { lat: -22.4361, lng: -46.8219 }
+};
+
+function calcularDistanciaLocalKm(a, b) {
+  const coords = [a?.lat, a?.lng, b?.lat, b?.lng].map(Number);
+  if (coords.some(v => !Number.isFinite(v))) return null;
+
+  const [aLat, aLng, bLat, bLng] = coords;
+  const R = 6371;
+  const dLat = (bLat - aLat) * Math.PI / 180;
+  const dLng = (bLng - aLng) * Math.PI / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(aLat * Math.PI / 180) * Math.cos(bLat * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+
+  return R * (2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h)));
+}
+
+function cidadeAproximada(coords) {
+  const distances = Object.entries(REGION_CENTERS)
+    .map(([name, center]) => ({ name, distance: calcularDistanciaLocalKm(coords, center) }))
+    .filter(item => Number.isFinite(item.distance))
+    .sort((a, b) => a.distance - b.distance);
+
+  const nearest = distances[0];
+  if (!nearest || nearest.distance > 35) return null;
+  return nearest;
+}
+
+function formatarDistancia(km) {
+  if (!Number.isFinite(km)) return "";
+  if (km < 1) return `${Math.max(10, Math.round(km * 1000))} m`;
+  if (km < 10) return `${km.toFixed(1)} km`;
+  return `${Math.round(km)} km`;
+}
+
+function formatarCoordenadas(coords) {
+  if (!coords) return "";
+  return `${Number(coords.lat).toFixed(4)}, ${Number(coords.lng).toFixed(4)}`;
+}
+
+function atualizarStatusLocalizacao() {
+  const status = qs("#iotLocationStatus");
+  if (!status) return;
+  if (!userCoords) {
+    status.textContent = "Sem localização";
+    status.title = "";
+    return;
+  }
+
+  const city = cidadeAproximada(userCoords);
+  const regionNote = city && regiaoSel !== "Todas" && city.name !== regiaoSel
+    ? ` · vendo ${regiaoSel}`
+    : "";
+  const label = city ? `Perto de ${city.name}` : "Localização aproximada";
+  status.textContent = `${label}${regionNote}`;
+  status.title = `Coordenadas aproximadas: ${formatarCoordenadas(userCoords)}. Distâncias em linha reta.`;
+}
+
+function renderIot(payload){
+  const summaryEl = qs("#iotSummary");
+  const listEl = qs("#iotList");
+  if (!summaryEl || !listEl) return;
+
+  const readings = Array.isArray(payload?.readings) ? payload.readings : [];
+  const summary = payload?.summary || {};
+  const generatedAt = payload?.generatedAt
+    ? new Date(payload.generatedAt).toLocaleString("pt-BR", { dateStyle:"short", timeStyle:"short" })
+    : "sem atualização";
+
+  summaryEl.innerHTML = [
+    `<div class="iot-kpi"><span>Lojas</span><strong>${summary.total || readings.length}</strong></div>`,
+    `<div class="iot-kpi ok"><span>Normal</span><strong>${summary.ok || 0}</strong></div>`,
+    `<div class="iot-kpi attention"><span>Atenção</span><strong>${summary.attention || 0}</strong></div>`,
+    `<div class="iot-kpi critical"><span>Crítico</span><strong>${summary.critical || 0}</strong></div>`,
+    `<div class="iot-kpi"><span>Fila média</span><strong>${Number(summary.avgQueue || 0).toFixed(1)} min</strong></div>`
+  ].join("");
+
+  if (!readings.length) {
+    listEl.innerHTML = `<div class="empty compact">Nenhuma leitura IoT para a região selecionada.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = readings.map(item => {
+    const status = item.status || "ok";
+    const distance = Number.isFinite(item.distanceKm)
+      ? `aprox. ${formatarDistancia(item.distanceKm)} de você`
+      : `Atualizado ${generatedAt}`;
+    return `
+      <article class="iot-card ${status}">
+        <div class="iot-card-top">
+          <div>
+            <h3>${escapeHTML(item.store)}</h3>
+            <p>${escapeHTML(item.region)} · ${distance}</p>
+          </div>
+          <span class="iot-pill ${status}">${iotStatusLabel[status] || status}</span>
+        </div>
+        <div class="iot-metrics">
+          <span class="iot-metric">
+            <b>${Number(item.queueMinutes || 0)} min</b>
+            <span>Tempo de fila</span>
+            <small>Espera estimada no caixa</small>
+          </span>
+          <span class="iot-metric">
+            <b>${Number(item.stockAlerts || 0)}</b>
+            <span>Alertas de estoque</span>
+            <small>Produtos com risco de faltar nas prateleiras</small>
+          </span>
+          <span class="iot-metric">
+            <b>${Number(item.freezerCelsius || 0).toFixed(1)}°C</b>
+            <span>Temperatura</span>
+            <small>Leitura dos freezers</small>
+          </span>
+          <span class="iot-metric">
+            <b>${Number(item.footTraffic || 0)}</b>
+            <span>Fluxo de clientes</span>
+            <small>Pessoas circulando na loja no momento</small>
+          </span>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+async function carregarIot(){
+  const params = new URLSearchParams();
+  if (regiaoSel && regiaoSel !== "Todas") params.set("region", regiaoSel);
+  if (userCoords) {
+    params.set("lat", userCoords.lat);
+    params.set("lng", userCoords.lng);
+  }
+
+  try {
+    const r = await fetch(`${API}/iot/status?${params.toString()}`);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "Erro ao carregar IoT");
+    atualizarStatusLocalizacao();
+    renderIot(d);
+  } catch (e) {
+    const listEl = qs("#iotList");
+    if (listEl) listEl.innerHTML = `<div class="empty compact">${escapeHTML(e.message)}</div>`;
+  }
+}
+
+function usarGeolocalizacao(){
+  const status = qs("#iotLocationStatus");
+  if (!navigator.geolocation) {
+    if (status) status.textContent = "Geolocalização indisponível";
+    return;
+  }
+
+  if (status) status.textContent = "Localizando...";
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      userCoords = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude
+      };
+      atualizarStatusLocalizacao();
+      carregarIot();
+    },
+    () => {
+      if (status) status.textContent = "Localização não autorizada";
+    },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+  );
 }
 
 // ===== Indicadores e Gráficos
@@ -167,10 +360,12 @@ function renderIndicadoresPreco(){
 
   // Tabelas comparativas
   // a) Região
-  const porReg = porChave(dadosOriginais, "region");
   const regLabels = [], regData = [];
-  Array.from(porReg.entries()).forEach(([reg, arr])=>{
-    regLabels.push(reg); regData.push(media(arr));
+  CIDADES.forEach(reg=>{
+    const arr = dadosOriginais.filter(p => normalizarRegiaoCliente(p.region) === reg);
+    if (!arr.length) return;
+    regLabels.push(reg);
+    regData.push(media(arr));
   });
   qs("#cmpRegioes").innerHTML =
     `<table class="table"><thead><tr><th>Região</th><th class="price">Média</th></tr></thead><tbody>${
@@ -405,11 +600,20 @@ function render(lista){
 
   el.innerHTML = visiveis.map((p,i)=>{
     const normal = `
-      <div class="title">${p.product}</div>
-      <div class="price">${moeda(p.price)} / ${p.unit}</div>
-      <div class="sub">${p.store}${p.brand ? " • " + p.brand : ""}</div>
-      <div class="sub">Categoria: ${(leg[p.category] || p.category)} • ${p.region || regiaoSel}</div>
-      ${i===0 && modo==="preco_asc" ? '<div style="color:#0a7a28;font-weight:bold;">✅ Mais barato (página)</div>' : ""}
+      <div class="product-card">
+        <div class="product-card-top">
+          <div>
+            <div class="title">${escapeHTML(p.product)}</div>
+            <div class="product-meta">
+              <span>${escapeHTML(p.store)}${p.brand ? " • " + escapeHTML(p.brand) : ""}</span>
+              <span>${escapeHTML(leg[p.category] || p.category)}</span>
+              <span>${escapeHTML(p.region || regiaoSel)}</span>
+            </div>
+          </div>
+          <div class="product-price">${moeda(p.price)}<small>${escapeHTML(p.unit)}</small></div>
+        </div>
+        ${i===0 && modo==="preco_asc" ? '<div class="best-chip">Mais barato na página</div>' : ""}
+      </div>
       ${logged && regiaoSel!=="Todas" ? `
         <div class="actions">
           <button class="btn edit" onclick="startEditById(${p.id})">Editar</button>
@@ -450,7 +654,10 @@ function render(lista){
 // ===== Carregar
 async function carregar(){
   const r=await fetch(`${API}/promotions`);
-  dadosOriginais=await r.json();
+  const data = await r.json();
+  dadosOriginais = (Array.isArray(data) ? data : [])
+    .map(item => ({ ...item, region: normalizarRegiaoCliente(item.region) }))
+    .filter(item => item.region);
   popularLojasFormulario();
   aplicarFiltros();
   if (indicadoresVisiveis) renderIndicadoresPreco();
@@ -526,9 +733,11 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       regiaoSel = e.target.value;
       localStorage.setItem("regiaoCTB", regiaoSel);
       const fReg = qs("#f_region"); if (fReg) fReg.value = regiaoSel;
+      atualizarStatusLocalizacao();
       updateFormRegionState();
       popularLojasFormulario();
       aplicarFiltros();
+      carregarIot();
       if (indicadoresVisiveis) renderIndicadoresPreco();
     });
   }
@@ -540,12 +749,12 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     const btn  = qs("#btnToggleIndicadores");
     if (indicadoresVisiveis){
       wrap.style.display = "block";
-      btn.textContent = "📊 Ocultar Indicadores";
+      btn.textContent = "Ocultar indicadores";
       btn.setAttribute("aria-expanded","true");
       renderIndicadoresPreco();
     } else {
       wrap.style.display = "none";
-      btn.textContent = "📊 Mostrar Indicadores";
+      btn.textContent = "Mostrar indicadores";
       btn.setAttribute("aria-expanded","false");
       limparIndicadores();
     }
@@ -554,6 +763,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   await checkLogin();
   updateAuthUI();
   await carregar();
+  await carregarIot();
 
   const fRegBoot = qs("#f_region"); if (fRegBoot) fRegBoot.value = regiaoSel;
   updateSubmitLabel();
@@ -589,6 +799,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   qs("#busca").addEventListener("input", aplicarFiltros);
   qs("#prevPage").addEventListener("click", ()=>{ paginaAtual--; render(aplicarFiltrosRet()); });
   qs("#nextPage").addEventListener("click", ()=>{ paginaAtual++; render(aplicarFiltrosRet()); });
+  qs("#btnUseLocation").addEventListener("click", usarGeolocalizacao);
 
   // Login UI
   qs("#btnLogin").addEventListener("click", openLogin);

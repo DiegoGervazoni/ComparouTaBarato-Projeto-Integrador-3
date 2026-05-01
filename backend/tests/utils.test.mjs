@@ -6,22 +6,27 @@ const {
   filtrarRegiao,
   porChave,
   ordenar,
-  topNBaratosPorCategoria
+  topNBaratosPorCategoria,
+  calcularDistanciaKm,
+  resumirIot,
+  promotionIdentityKey,
+  normalizarRegiao,
+  VALID_REGIONS
 } = utils;
 
 const dados = [
-  { id: 1, product: "Arroz 5 kg", brand: "Tio João", store: "GoodBom", price: 24.90, unit: "un", category: "cesta_basica", region: "Monte Mor" },
-  { id: 2, product: "Banana prata", brand: null,      store: "GoodBom", price: 4.99,  unit: "kg", category: "hortifruti",   region: "Monte Mor" },
+  { id: 1, product: "Arroz 5 kg", brand: "Tio João", store: "GoodBom", price: 24.90, unit: "un", category: "cesta_basica", region: "Itapira" },
+  { id: 2, product: "Banana prata", brand: null,      store: "GoodBom", price: 4.99,  unit: "kg", category: "hortifruti",   region: "Itapira" },
   { id: 3, product: "Detergente",   brand: "Ypê",     store: "Sevan",   price: 2.99,  unit: "un", category: "limpeza",      region: "Campinas" },
-  { id: 4, product: "Feijão 1 kg",  brand: "Kicaldo", store: "Sevan",   price: 8.50,  unit: "un", category: "cesta_basica", region: "Monte Mor" },
+  { id: 4, product: "Feijão 1 kg",  brand: "Kicaldo", store: "Sevan",   price: 8.50,  unit: "un", category: "cesta_basica", region: "Itapira" },
   { id: 5, product: "Sabão em pó",  brand: "OMO",     store: "Dia",     price: 29.90, unit: "un", category: "limpeza",      region: "Americana" },
   { id: 6, product: "Maçã",         brand: null,      store: "Dia",     price: 7.00,  unit: "kg", category: "hortifruti",   region: "Americana" }
 ];
 
 describe("media", () => {
   it("calcula a média de preços corretamente", () => {
-    const mm = media(dados.filter(d => d.region === "Monte Mor"));
-    expect(Number(mm.toFixed(2))).toBe(12.80);
+    const itapira = media(dados.filter(d => d.region === "Itapira"));
+    expect(Number(itapira.toFixed(2))).toBe(12.80);
   });
   it("retorna 0 para lista vazia", () => {
     expect(media([])).toBe(0);
@@ -34,8 +39,18 @@ describe("filtrarRegiao", () => {
     expect(r.length).toBe(dados.length);
   });
   it("filtra ignorando maiúsculas e minúsculas", () => {
-    const r = filtrarRegiao(dados, "monte mor");
-    expect(r.every(x => x.region === "Monte Mor")).toBe(true);
+    const r = filtrarRegiao(dados, "itapira");
+    expect(r.every(x => x.region === "Itapira")).toBe(true);
+  });
+});
+
+describe("normalizarRegiao", () => {
+  it("aceita somente cidades cadastradas como regiao", () => {
+    expect(VALID_REGIONS).toEqual(expect.arrayContaining(["Campinas", "Americana", "Itapira"]));
+    expect(normalizarRegiao("itapira")).toBe("Itapira");
+    expect(normalizarRegiao("Cesta Básica")).toBe(null);
+    expect(normalizarRegiao("Limpeza")).toBe(null);
+    expect(normalizarRegiao("Outras")).toBe(null);
   });
 });
 
@@ -84,5 +99,79 @@ describe("topNBaratosPorCategoria", () => {
         expect(arr[i - 1].price <= arr[i].price).toBe(true);
       }
     }
+  });
+});
+
+describe("calcularDistanciaKm", () => {
+  it("calcula distancia aproximada entre duas coordenadas", () => {
+    const km = calcularDistanciaKm(-22.435, -46.823, -22.431, -46.822);
+    expect(Number(km.toFixed(2))).toBeGreaterThan(0);
+    expect(Number(km.toFixed(2))).toBeLessThan(1);
+  });
+
+  it("retorna null para coordenadas invalidas", () => {
+    expect(calcularDistanciaKm("abc", -46.823, -22.431, -46.822)).toBe(null);
+  });
+});
+
+describe("resumirIot", () => {
+  it("resume leituras por status e fila media", () => {
+    const summary = resumirIot([
+      { status: "ok", queueMinutes: 2 },
+      { status: "attention", queueMinutes: 8 },
+      { status: "critical", queueMinutes: 12 },
+    ]);
+
+    expect(summary.total).toBe(3);
+    expect(summary.ok).toBe(1);
+    expect(summary.attention).toBe(1);
+    expect(summary.critical).toBe(1);
+    expect(Number(summary.avgQueue.toFixed(1))).toBe(7.3);
+  });
+});
+
+describe("promotionIdentityKey", () => {
+  it("normaliza campos que identificam uma promocao sem considerar preco", () => {
+    const a = promotionIdentityKey({
+      product: " Arroz ",
+      brand: "Camil",
+      store: "Pague Menos",
+      price: 24.49,
+      unit: "5 quilograma",
+      category: "cesta_basica",
+      region: "Americana"
+    });
+    const b = promotionIdentityKey({
+      product: "arroz",
+      brand: " camil ",
+      store: "pague menos",
+      price: 21.99,
+      unit: "5 quilograma",
+      category: "CESTA_BASICA",
+      region: "americana"
+    });
+
+    expect(a).toBe(b);
+  });
+
+  it("diferencia lojas para permitir o mesmo item em supermercados distintos", () => {
+    const pagueMenos = promotionIdentityKey({
+      product: "Arroz",
+      brand: "Camil",
+      store: "Pague Menos",
+      unit: "5 quilograma",
+      category: "cesta_basica",
+      region: "Americana"
+    });
+    const saoVicente = promotionIdentityKey({
+      product: "Arroz",
+      brand: "Camil",
+      store: "Sao Vicente",
+      unit: "5 quilograma",
+      category: "cesta_basica",
+      region: "Americana"
+    });
+
+    expect(pagueMenos).not.toBe(saoVicente);
   });
 });

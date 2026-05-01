@@ -1,0 +1,102 @@
+{
+  "generatedAt": "2026-05-01T13:30:00+00:00",
+  "source": "scripts/fake_iot.py",
+  "readings": [
+    {
+      "store": "Delanana",
+      "region": "Itapira",
+      "lat": -22.435,
+      "lng": -46.823,
+      "queueMinutes": 7,
+      "stockAlerts": 6,
+      "freezerCelsius": 3.3,
+      "footTraffic": 82,
+      "energyKw": 20.4,
+      "status": "critical"
+    },
+    {
+      "store": "Geoli",
+      "region": "Itapira",
+      "lat": -22.438,
+      "lng": -46.825,
+      "queueMinutes": 2,
+      "stockAlerts": 5,
+      "freezerCelsius": 2.2,
+      "footTraffic": 12,
+      "energyKw": 19.6,
+      "status": "attention"
+    },
+    {
+      "store": "Antonelli",
+      "region": "Itapira",
+      "lat": -22.436,
+      "lng": -46.82,
+      "queueMinutes": 8,
+      "stockAlerts": 5,
+      "freezerCelsius": 3.8,
+      "footTraffic": 26,
+      "energyKw": 28.0,
+      "status": "attention"
+    },
+    {
+      "store": "Savegnago",
+      "region": "Campinas",
+      "lat": -22.9083,
+      "lng": -47.0626,
+      "queueMinutes": 11,
+      "stockAlerts": 4,
+      "freezerCelsius": 5.4,
+      "footTraffic": 19,
+      "energyKw": 19.7,
+      "status": "critical"
+    },
+    {
+      "store": "Pão de Açúcar",
+      "region": "Campinas",
+      "lat": -22.8958,
+      "lng": -47.0503,
+      "queueMinutes": 2,
+      "stockAlerts": 1,
+      "freezerCelsius": 3.1,
+      "footTraffic": 83,
+      "energyKw": 22.0,
+      "status": "ok"
+    },
+    {
+      "store": "Crema",
+      "region": "Americana",
+      "lat": -22.7362,
+      "lng": -47.3337,
+      "queueMinutes": 5,
+      "stockAlerts": 2,
+      "freezerCelsius": 3.4,
+      "footTraffic": 64,
+      "energyKw": 18.7,
+      "status": "ok"
+    },
+    {
+      "store": "Pague Menos",
+      "region": "Americana",
+      "lat": -22.7451,
+      "lng": -47.3278,
+      "queueMinutes": 8,
+      "stockAlerts": 3,
+      "freezerCelsius": 5.9,
+      "footTraffic": 78,
+      "energyKw": 23.1,
+      "status": "attention"
+    },
+    {
+      "store": "São Vicente",
+      "region": "Americana",
+      "lat": -22.7398,
+      "lng": -47.3371,
+      "queueMinutes": 12,
+      "stockAlerts": 5,
+      "freezerCelsius": 7.1,
+      "footTraffic": 91,
+      "energyKw": 27.4,
+      "status": "critical"
+    }
+  ]
+}

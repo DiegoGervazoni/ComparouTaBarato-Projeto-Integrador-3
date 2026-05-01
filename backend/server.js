@@ -8,29 +8,37 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
-const stores = require("./stores.json");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const { Pool } = require("pg");
+const { calcularDistanciaKm, resumirIot, promotionIdentityKey, normalizarRegiao, VALID_REGIONS } = require("./src/utils");
 
 
 // ===== Configurações de ambiente
 const PORT = Number(process.env.PORT) || 8081;
 const HOST = "0.0.0.0";
+const IOT_DATA_PATH = path.join(__dirname, "data", "iot_readings.json");
+const STORE_DATA_PATHS = [
+  path.join(__dirname, "stores", "stores.json"),
+  path.join(__dirname, "stores.json"),
+];
+const stores = readStores();
 
 // Conexão PostgreSQL (Render fornece DATABASE_URL)
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  console.error("DATABASE_URL não definida nas variáveis de ambiente.");
-  process.exit(1);
+  console.warn("DATABASE_URL não definida nas variáveis de ambiente. Rotas de banco ficarão indisponíveis.");
 }
 
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+const pool = DATABASE_URL
+  ? new Pool({
+      connectionString: DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+    })
+  : null;
+let databaseReady = false;
 
 // ===== Aplicação Express
 const app = express();
@@ -83,10 +91,11 @@ function auth(req, res, next) {
 // ===== Healthcheck (Render)
 app.get("/healthz", async (req, res) => {
   try {
+    if (!pool) return res.json({ ok: true, database: false });
     await pool.query("select 1");
     res.json({ ok: true });
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
+    res.json({ ok: true, database: false, error: e.message });
   }
 });
 
@@ -94,134 +103,185 @@ app.get("/healthz", async (req, res) => {
 // ===== Inicialização do banco e carga automática do CSV =====
 
 async function ensureSchema() {
-  const sql = `
-    create table if not exists promotions (
-      id serial primary key,
-      product text not null,
-      brand text,
-      store text,
-      price numeric(12,2) not null,
-      unit text,
-      category text,
-      region text,
-      updated_at timestamp not null default now()
-    );
-    create index if not exists idx_promotions_region on promotions(region);
-    create index if not exists idx_promotions_product on promotions(product);
-  `;
+  const sql = [
+    "create table if not exists promotions (",
+    "  id serial primary key,",
+    "  product text not null,",
+    "  brand text,",
+    "  store text,",
+    "  price numeric(12,2) not null,",
+    "  unit text,",
+    "  category text,",
+    "  region text,",
+    "  updated_at timestamp not null default now()",
+    ");",
+    "create index if not exists idx_promotions_region on promotions(region);",
+    "create index if not exists idx_promotions_product on promotions(product);"
+  ].join("\n");
+
   await pool.query(sql);
-  console.log("✅ Estrutura da tabela garantida.");
+  console.log("Estrutura da tabela garantida.");
 
   try {
-    const { rows } = await pool.query("SELECT COUNT(*) FROM promotions");
-    const count = Number(rows[0].count);
-
-    if (count !== 0) {
-      console.log(`ℹ️ A tabela já contém ${count} registros. Nenhuma importação necessária.`);
-      return;
-    }
-
-    const filePath = path.join(__dirname, "produtos_utf8.csv");
-    if (!fs.existsSync(filePath)) {
-      console.log("ℹ️ produtos_utf8.csv não encontrado; pulando importação inicial.");
-      return;
-    }
-
-    console.log("📦 Tabela vazia. Iniciando importação do CSV...");
-
-    const raw = fs.readFileSync(filePath, "utf8");
-    // quebra linhas e remove linhas totalmente vazias
-    const all = raw.split(/\r?\n/).map(l => l.trim());
-    const nonEmpty = all.filter(l => l.length);
-
-    // encontra a linha de cabeçalho (procura “produto” e “preço/preco”)
-    const headerIdx = nonEmpty.findIndex(l => /produto/i.test(l) && /(preç|preco)/i.test(l));
-    if (headerIdx === -1) {
-      console.log("❌ Não encontrei cabeçalho com colunas 'Produto' e 'Preço'. Verifique o CSV.");
-      return;
-    }
-
-    const headerLine = nonEmpty[headerIdx];
-    const dataLines  = nonEmpty.slice(headerIdx + 1);
-    const delim = headerLine.includes(";") ? ";" : ",";
-
-    const headers = headerLine
-      .split(delim)
-      .map(h => h.replace(/^"(.*)"$/, "$1").trim().toLowerCase());
-
-    // helper para achar índice por possíveis rótulos
-    const findIdx = (...cands) => {
-      const i = headers.findIndex(h => cands.some(c => h === c || h.includes(c)));
-      return i === -1 ? null : i;
-    };
-
-    const iProduto = findIdx("produto");
-    const iMarca   = findIdx("marca");
-    const iLoja    = findIdx("loja/supermercado", "loja", "supermercado");
-    const iPreco   = findIdx("preço", "preco");
-    const iQtd     = findIdx("quantidade", "qtd");
-    const iUnid    = findIdx("unidade", "uni");
-    const iCat     = findIdx("categoria");
-    const iReg     = findIdx("região", "regiao");
-
-    const normCat = (s = "") => {
-      s = s.trim().toLowerCase();
-      if (s.includes("cesta")) return "cesta_basica";
-      if (s.includes("horti")) return "hortifruti";
-      if (s.includes("limp"))  return "limpeza";
-      return "outras";
-    };
-
-    let inserted = 0, skipped = 0;
-
-    for (const line of dataLines) {
-      if (!line.trim()) { skipped++; continue; }
-
-      const cols = line
-        .split(delim)
-        .map(v => v.replace(/^"(.*)"$/, "$1").trim());
-
-      const get = (i) => (i == null || i >= cols.length) ? "" : cols[i];
-
-      const product  = get(iProduto);
-      const brand    = get(iMarca) || null;
-      const store    = get(iLoja);
-      const priceStr = get(iPreco);
-      const qtd      = get(iQtd);
-      const unid     = get(iUnid);
-      const category = normCat(get(iCat));
-      const region   = get(iReg) || null;
-
-      // monta unit: “900 mililitro” se houver quantidade
-      const unit = [qtd, unid].filter(Boolean).join(" ").trim() || unid || "un";
-
-      // normaliza preço: "24,90" -> 24.90
-      const priceNum = Number(String(priceStr).replace(",", "."));
-
-      // validações mínimas
-      if (!product || !store || !Number.isFinite(priceNum)) {
-        skipped++;
-        continue;
-      }
-
-      try {
-        await pool.query(
-          `insert into promotions (product, brand, store, price, unit, category, region)
-           values ($1,$2,$3,$4,$5,$6,$7)`,
-          [product, brand, store, priceNum, unit, category, region]
-        );
-        inserted++;
-      } catch (e) {
-        console.log("linha pulada por erro:", e.message);
-        skipped++;
-      }
-    }
-
-    console.log(`✅ Importação concluída. Inseridos: ${inserted}, puladas: ${skipped}, total lidas: ${dataLines.length}.`);
+    await syncPromotionsFromCsv();
   } catch (e) {
-    console.error("❌ Erro ao importar CSV:", e.message);
+    console.error("Erro ao sincronizar CSV:", e.message);
   }
 }
+
+function parseCsvLine(line, delim) {
+  const cols = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === delim && !inQuotes) {
+      cols.push(current.trim());
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+
+  cols.push(current.trim());
+  return cols;
+}
+
+function normalizeCsvCategory(s = "") {
+  s = s.trim().toLowerCase();
+  if (s.includes("cesta")) return "cesta_basica";
+  if (s.includes("horti")) return "hortifruti";
+  if (s.includes("limp")) return "limpeza";
+  return "outras";
+}
+
+function normalizeCsvHeader(value = "") {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function findCsvIndex(headers, ...cands) {
+  const i = headers.findIndex(h => cands.some(c => h === c || h.includes(c)));
+  return i === -1 ? null : i;
+}
+
+function promotionFromCsvLine(line, delim, indexes) {
+  const cols = parseCsvLine(line, delim);
+  const get = (i) => (i == null || i >= cols.length) ? "" : cols[i];
+
+  const product = get(indexes.product);
+  const brand = get(indexes.brand) || null;
+  const store = get(indexes.store);
+  const priceStr = get(indexes.price);
+  const qtd = get(indexes.quantity);
+  const unid = get(indexes.unit);
+  const category = normalizeCsvCategory(get(indexes.category));
+  const region = normalizarRegiao(get(indexes.region));
+  const unit = [qtd, unid].filter(Boolean).join(" ").trim() || "un";
+  const price = Number(String(priceStr).replace(",", "."));
+
+  return { product, brand, store, price, unit, category, region };
+}
+
+async function syncPromotionsFromCsv() {
+  const csvPath = path.join(__dirname, "produtos_utf8.csv");
+  if (!fs.existsSync(csvPath)) {
+    console.log("produtos_utf8.csv nao encontrado; pulando sincronizacao.");
+    return;
+  }
+
+  const raw = fs.readFileSync(csvPath, "utf8");
+  const nonEmpty = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
+  const headerIdx = nonEmpty.findIndex(l => {
+    const normalized = normalizeCsvHeader(l);
+    return normalized.includes("produto") && normalized.includes("preco");
+  });
+  if (headerIdx === -1) {
+    console.log("Nao encontrei cabecalho com colunas Produto e Preco. Verifique o CSV.");
+    return;
+  }
+
+  const headerLine = nonEmpty[headerIdx];
+  const dataLines = nonEmpty.slice(headerIdx + 1);
+  const delim = headerLine.includes(";") ? ";" : ",";
+  const headers = parseCsvLine(headerLine, delim).map(normalizeCsvHeader);
+  const indexes = {
+    product: findCsvIndex(headers, "produto"),
+    brand: findCsvIndex(headers, "marca"),
+    store: findCsvIndex(headers, "loja/supermercado", "loja", "supermercado"),
+    price: findCsvIndex(headers, "preco"),
+    quantity: findCsvIndex(headers, "quantidade", "qtd"),
+    unit: findCsvIndex(headers, "unidade", "uni"),
+    category: findCsvIndex(headers, "categoria"),
+    region: findCsvIndex(headers, "regiao"),
+  };
+
+  const insertIfMissingSql = [
+    "insert into promotions (product, brand, store, price, unit, category, region)",
+    "select $1,$2,$3,$4,$5,$6,$7",
+    "where not exists (",
+    "  select 1 from promotions",
+    "  where lower(trim(product)) = lower(trim($1::text))",
+    "    and lower(trim(coalesce(brand, ''))) = lower(trim(coalesce($2::text, '')))",
+    "    and lower(trim(coalesce(store, ''))) = lower(trim($3::text))",
+    "    and lower(trim(coalesce(unit, ''))) = lower(trim($5::text))",
+    "    and lower(trim(coalesce(category, ''))) = lower(trim($6::text))",
+    "    and lower(trim(coalesce(region, ''))) = lower(trim(coalesce($7::text, '')))",
+    ")"
+  ].join("\n");
+
+  let inserted = 0;
+  let existing = 0;
+  let skipped = 0;
+  const seenCsvKeys = new Set();
+
+  for (const line of dataLines) {
+    const promotion = promotionFromCsvLine(line, delim, indexes);
+
+    if (!promotion.product || !promotion.store || !promotion.region || !Number.isFinite(promotion.price)) {
+      skipped++;
+      continue;
+    }
+
+    const csvKey = promotionIdentityKey(promotion);
+    if (seenCsvKeys.has(csvKey)) {
+      existing++;
+      continue;
+    }
+    seenCsvKeys.add(csvKey);
+
+    try {
+      const { rowCount } = await pool.query(insertIfMissingSql, [
+        promotion.product,
+        promotion.brand,
+        promotion.store,
+        promotion.price,
+        promotion.unit,
+        promotion.category,
+        promotion.region,
+      ]);
+      if (rowCount) inserted++;
+      else existing++;
+    } catch (e) {
+      console.log("linha pulada por erro:", e.message);
+      skipped++;
+    }
+  }
+
+  console.log("CSV sincronizado. Inseridos: " + inserted + ", existentes: " + existing + ", puladas: " + skipped + ", total lidas: " + dataLines.length + ".");
+}
+
 
 
 
@@ -234,31 +294,59 @@ function sanitizePromotion(p) {
     price: Number(p.price),
     unit: String(p.unit || "").trim(),
     category: String(p.category || "").trim(),
-    region: String(p.region || "").trim(),
+    region: normalizarRegiao(p.region) || "",
   };
 }
 
 function validPromotion(p) {
-  return p.product && Number.isFinite(p.price);
+  return p.product && p.store && p.region && Number.isFinite(p.price);
 }
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
-  const R = 6371; // km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
+  return calcularDistanciaKm(lat1, lon1, lat2, lon2);
+}
 
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+function readStores() {
+  const filePath = STORE_DATA_PATHS.find((candidate) => fs.existsSync(candidate));
+  if (!filePath) return [];
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
 
-  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+function readIotPayload() {
+  if (!fs.existsSync(IOT_DATA_PATH)) {
+    return {
+      generatedAt: null,
+      source: null,
+      readings: [],
+    };
+  }
+
+  const raw = fs.readFileSync(IOT_DATA_PATH, "utf8");
+  const payload = JSON.parse(raw);
+  return {
+    generatedAt: payload.generatedAt || null,
+    source: payload.source || null,
+    readings: Array.isArray(payload.readings) ? payload.readings : [],
+  };
+}
+
+function addDistance(reading, lat, lng) {
+  const distanceKm = calcularDistancia(reading.lat, reading.lng, lat, lng);
+  if (distanceKm == null) return reading;
+  return {
+    ...reading,
+    distanceKm: Number(distanceKm.toFixed(2)),
+  };
 }
 
 // ===== Rotas principais
 // Listagem com filtros opcionais
 app.get("/promotions", async (req, res) => {
   try {
+    if (!databaseReady) {
+      return res.json([]);
+    }
+
     const { region, q } = req.query;
 
     const params = [];
@@ -268,10 +356,14 @@ app.get("/promotions", async (req, res) => {
       "price is not null",
       "price > 0"
     ];
+    params.push(VALID_REGIONS.map(regionName => regionName.toLowerCase()));
+    whereParts.push(`lower(trim(region)) = any($${params.length}::text[])`);
 
     if (region && region !== "Todas") {
-      params.push(String(region).toLowerCase());
-      whereParts.push(`lower(region) = $${params.length}`);
+      const normalizedRegion = normalizarRegiao(region);
+      if (!normalizedRegion) return res.json([]);
+      params.push(normalizedRegion.toLowerCase());
+      whereParts.push(`lower(trim(region)) = $${params.length}`);
     }
 
     if (q && String(q).trim()) {
@@ -297,7 +389,10 @@ app.get("/promotions", async (req, res) => {
     `;
 
     const { rows } = await pool.query(sql, params);
-    res.json(rows);
+    res.json(rows.map(row => ({
+      ...row,
+      region: normalizarRegiao(row.region) || row.region,
+    })));
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Erro ao listar promoções" });
@@ -333,9 +428,49 @@ app.get("/stores/near", (req, res) => {
   }
 });
 
+app.get("/iot/status", (req, res) => {
+  try {
+    const { lat, lng, region } = req.query;
+    const hasCoords = lat != null && lng != null;
+    const userLat = Number(lat);
+    const userLng = Number(lng);
+
+    if (hasCoords && (!Number.isFinite(userLat) || !Number.isFinite(userLng))) {
+      return res.status(400).json({ error: "Latitude ou longitude inválidas" });
+    }
+
+    const payload = readIotPayload();
+    let readings = payload.readings;
+
+    if (region && region !== "Todas") {
+      readings = readings.filter((item) =>
+        String(item.region || "").toLowerCase() === String(region).toLowerCase()
+      );
+    }
+
+    if (hasCoords) {
+      readings = readings
+        .map((item) => addDistance(item, userLat, userLng))
+        .sort((a, b) => (a.distanceKm ?? Number.POSITIVE_INFINITY) - (b.distanceKm ?? Number.POSITIVE_INFINITY));
+    }
+
+    res.json({
+      generatedAt: payload.generatedAt,
+      source: payload.source,
+      summary: resumirIot(readings),
+      readings,
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Erro ao buscar status IoT" });
+  }
+});
+
 // Criar
 app.post("/promotions", auth, async (req, res) => {
   try {
+    if (!databaseReady) return res.status(503).json({ error: "Banco de dados indisponível" });
+
     const p = sanitizePromotion(req.body || {});
     if (!validPromotion(p)) return res.status(400).json({ error: "Campos obrigatórios ausentes" });
 
@@ -357,6 +492,8 @@ app.post("/promotions", auth, async (req, res) => {
 // Atualizar
 app.put("/promotions/:id", auth, async (req, res) => {
   try {
+    if (!databaseReady) return res.status(503).json({ error: "Banco de dados indisponível" });
+
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "ID inválido" });
 
@@ -383,6 +520,8 @@ app.put("/promotions/:id", auth, async (req, res) => {
 // Deletar
 app.delete("/promotions/:id", auth, async (req, res) => {
   try {
+    if (!databaseReady) return res.status(503).json({ error: "Banco de dados indisponível" });
+
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: "ID inválido" });
 
@@ -401,7 +540,19 @@ app.use(express.static(path.join(__dirname, "public")));
 // ===== Iniciar servidor
 (async () => {
   try {
-    await ensureSchema();
+    try {
+      if (pool) {
+        await ensureSchema();
+        databaseReady = true;
+      } else {
+        databaseReady = false;
+        console.warn("Banco de dados não configurado; iniciando apenas o frontend e rotas sem banco.");
+      }
+    } catch (e) {
+      databaseReady = false;
+      console.error("Banco de dados indisponível; iniciando apenas o frontend e rotas sem banco:", e.message);
+    }
+
     app.listen(PORT, HOST, () => {
       console.log(`Servidor rodando em http://${HOST}:${PORT}`);
     });

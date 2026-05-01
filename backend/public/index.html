@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Comparou tá Barato</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,12 +15,11 @@
     <div class="topbar">
       <div class="region-tag">
         <label for="regiaoSel" class="sr-only">Região</label>
-        <span aria-hidden="true">📍 Região</span>
+        <span aria-hidden="true">Região</span>
         <select id="regiaoSel" aria-label="Selecionar região">
           <option>Todas</option>
           <option>Campinas</option>
           <option>Americana</option>
-          <option selected>Monte Mor</option>
           <option>Itapira</option>
         </select>
       </div>
@@ -58,8 +60,63 @@
 
   <!-- BOTÃO INDICADORES -->
   <div class="container">
-    <button id="btnToggleIndicadores" class="btn-primary" type="button" aria-expanded="false" aria-controls="indicadoresWrap">📊 Mostrar Indicadores</button>
+    <button id="btnToggleIndicadores" class="btn-primary" type="button" aria-expanded="false" aria-controls="indicadoresWrap">Mostrar indicadores</button>
   </div>
+
+  <section class="iot-panel" aria-labelledby="iotTitle">
+    <div class="iot-head">
+      <div>
+        <p class="muted small">Monitoramento local</p>
+        <h2 id="iotTitle" class="section-title section-title--inline">Geolocalização + IoT</h2>
+      </div>
+      <div class="iot-actions">
+        <button id="btnUseLocation" class="btn" type="button">Usar minha localização</button>
+        <span id="iotLocationStatus" class="muted small">Sem localização</span>
+      </div>
+    </div>
+    <div id="iotSummary" class="iot-summary"></div>
+    <div class="iot-legend" aria-label="Legenda dos status das lojas">
+      <div class="iot-legend-title">Legenda</div>
+      <div class="iot-legend-grid">
+        <div class="iot-legend-item ok">
+          <span class="iot-dot" aria-hidden="true"></span>
+          <div>
+            <strong>Normal</strong>
+            <p>Operação dentro do esperado.</p>
+          </div>
+        </div>
+        <div class="iot-legend-item attention">
+          <span class="iot-dot" aria-hidden="true"></span>
+          <div>
+            <strong>Atenção</strong>
+            <p>Algum indicador pede acompanhamento.</p>
+          </div>
+        </div>
+        <div class="iot-legend-item critical">
+          <span class="iot-dot" aria-hidden="true"></span>
+          <div>
+            <strong>Crítico</strong>
+            <p>Situação fora do padrão, com prioridade de verificação.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="iot-guide" aria-label="Significado dos indicadores IoT">
+      <div>
+        <strong>Alertas de estoque</strong>
+        <p>Itens com risco de faltar nas prateleiras ou áreas de venda.</p>
+      </div>
+      <div>
+        <strong>Fluxo de clientes</strong>
+        <p>Estimativa de pessoas circulando na loja no momento da leitura.</p>
+      </div>
+      <div>
+        <strong>Temperatura</strong>
+        <p>Leitura dos freezers e áreas refrigeradas monitoradas pela loja.</p>
+      </div>
+    </div>
+    <div id="iotList" class="iot-list"></div>
+  </section>
 
   <!-- BLOQUEIO DE CADASTRO SE REGIÃO = TODAS -->
   <div id="formBlocked" class="alert" style="display:none;" role="status" aria-live="polite">
@@ -104,7 +161,7 @@
       </div>
       <div>
         <label for="f_region">Região selecionada</label>
-        <input id="f_region" value="Monte Mor" disabled />
+        <input id="f_region" value="Campinas" disabled />
       </div>
     </div>
     <button type="submit">Cadastrar promoção</button>
