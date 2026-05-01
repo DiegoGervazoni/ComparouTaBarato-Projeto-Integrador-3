@@ -14,7 +14,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-STORE_PATHS = [ROOT / "stores.json", ROOT / "stores" / "stores.json"]
+STORE_PATHS = [ROOT / "stores" / "stores.json", ROOT / "stores.json"]
 OUT_PATH = ROOT / "data" / "iot_readings.json"
 
 STORE_REGIONS = {

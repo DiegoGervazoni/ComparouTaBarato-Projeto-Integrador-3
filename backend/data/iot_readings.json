@@ -41,8 +41,8 @@
     {
       "store": "Savegnago",
       "region": "Campinas",
-      "lat": -22.431,
-      "lng": -46.822,
+      "lat": -22.9083,
+      "lng": -47.0626,
       "queueMinutes": 11,
       "stockAlerts": 4,
       "freezerCelsius": 5.4,
@@ -53,8 +53,8 @@
     {
       "store": "Pão de Açúcar",
       "region": "Campinas",
-      "lat": -22.428,
-      "lng": -46.819,
+      "lat": -22.8958,
+      "lng": -47.0503,
       "queueMinutes": 2,
       "stockAlerts": 1,
       "freezerCelsius": 3.1,

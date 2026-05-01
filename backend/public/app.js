@@ -140,6 +140,69 @@ const iotStatusLabel = {
   critical: "Crítico"
 };
 
+const REGION_CENTERS = {
+  Campinas: { lat: -22.9056, lng: -47.0608 },
+  Americana: { lat: -22.7392, lng: -47.3314 },
+  Itapira: { lat: -22.4361, lng: -46.8219 }
+};
+
+function calcularDistanciaLocalKm(a, b) {
+  const coords = [a?.lat, a?.lng, b?.lat, b?.lng].map(Number);
+  if (coords.some(v => !Number.isFinite(v))) return null;
+
+  const [aLat, aLng, bLat, bLng] = coords;
+  const R = 6371;
+  const dLat = (bLat - aLat) * Math.PI / 180;
+  const dLng = (bLng - aLng) * Math.PI / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(aLat * Math.PI / 180) * Math.cos(bLat * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+
+  return R * (2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h)));
+}
+
+function cidadeAproximada(coords) {
+  const distances = Object.entries(REGION_CENTERS)
+    .map(([name, center]) => ({ name, distance: calcularDistanciaLocalKm(coords, center) }))
+    .filter(item => Number.isFinite(item.distance))
+    .sort((a, b) => a.distance - b.distance);
+
+  const nearest = distances[0];
+  if (!nearest || nearest.distance > 35) return null;
+  return nearest;
+}
+
+function formatarDistancia(km) {
+  if (!Number.isFinite(km)) return "";
+  if (km < 1) return `${Math.max(10, Math.round(km * 1000))} m`;
+  if (km < 10) return `${km.toFixed(1)} km`;
+  return `${Math.round(km)} km`;
+}
+
+function formatarCoordenadas(coords) {
+  if (!coords) return "";
+  return `${Number(coords.lat).toFixed(4)}, ${Number(coords.lng).toFixed(4)}`;
+}
+
+function atualizarStatusLocalizacao() {
+  const status = qs("#iotLocationStatus");
+  if (!status) return;
+  if (!userCoords) {
+    status.textContent = "Sem localização";
+    status.title = "";
+    return;
+  }
+
+  const city = cidadeAproximada(userCoords);
+  const regionNote = city && regiaoSel !== "Todas" && city.name !== regiaoSel
+    ? ` · vendo ${regiaoSel}`
+    : "";
+  const label = city ? `Perto de ${city.name}` : "Localização aproximada";
+  status.textContent = `${label}${regionNote}`;
+  status.title = `Coordenadas aproximadas: ${formatarCoordenadas(userCoords)}. Distâncias em linha reta.`;
+}
+
 function renderIot(payload){
   const summaryEl = qs("#iotSummary");
   const listEl = qs("#iotList");
@@ -166,7 +229,9 @@ function renderIot(payload){
 
   listEl.innerHTML = readings.map(item => {
     const status = item.status || "ok";
-    const distance = Number.isFinite(item.distanceKm) ? `${item.distanceKm.toFixed(2)} km` : generatedAt;
+    const distance = Number.isFinite(item.distanceKm)
+      ? `aprox. ${formatarDistancia(item.distanceKm)} de você`
+      : `Atualizado ${generatedAt}`;
     return `
       <article class="iot-card ${status}">
         <div class="iot-card-top">
@@ -214,6 +279,7 @@ async function carregarIot(){
     const r = await fetch(`${API}/iot/status?${params.toString()}`);
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || "Erro ao carregar IoT");
+    atualizarStatusLocalizacao();
     renderIot(d);
   } catch (e) {
     const listEl = qs("#iotList");
@@ -235,7 +301,7 @@ function usarGeolocalizacao(){
         lat: pos.coords.latitude,
         lng: pos.coords.longitude
       };
-      if (status) status.textContent = "Localização ativa";
+      atualizarStatusLocalizacao();
       carregarIot();
     },
     () => {
@@ -654,6 +720,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       regiaoSel = e.target.value;
       localStorage.setItem("regiaoCTB", regiaoSel);
       const fReg = qs("#f_region"); if (fReg) fReg.value = regiaoSel;
+      atualizarStatusLocalizacao();
       updateFormRegionState();
       popularLojasFormulario();
       aplicarFiltros();

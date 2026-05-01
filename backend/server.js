@@ -21,8 +21,8 @@ const PORT = Number(process.env.PORT) || 8081;
 const HOST = "0.0.0.0";
 const IOT_DATA_PATH = path.join(__dirname, "data", "iot_readings.json");
 const STORE_DATA_PATHS = [
-  path.join(__dirname, "stores.json"),
   path.join(__dirname, "stores", "stores.json"),
+  path.join(__dirname, "stores.json"),
 ];
 const stores = readStores();
 
