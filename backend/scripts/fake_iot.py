@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import random
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,30 +18,38 @@ STORE_PATHS = [ROOT / "stores.json", ROOT / "stores" / "stores.json"]
 OUT_PATH = ROOT / "data" / "iot_readings.json"
 
 STORE_REGIONS = {
-    "Delanana": "Itapira",
-    "Geoli": "Itapira",
-    "Antonelli": "Itapira",
-    "Savegnago": "Campinas",
-    "Pao de Acucar": "Campinas",
-    "Pão de Açúcar": "Campinas",
+    "delanana": "Itapira",
+    "geoli": "Itapira",
+    "antonelli": "Itapira",
+    "savegnago": "Campinas",
+    "pao de acucar": "Campinas",
+    "crema": "Americana",
+    "pague menos": "Americana",
+    "sao vicente": "Americana",
 }
+
+AMERICANA_IOT_STORES = [
+    { "name": "Crema", "lat": -22.7362, "lng": -47.3337 },
+    { "name": "Pague Menos", "lat": -22.7451, "lng": -47.3278 },
+    { "name": "São Vicente", "lat": -22.7398, "lng": -47.3371 },
+]
 
 
 def normalize_name(value: str) -> str:
-    replacements = str.maketrans({
-        "ã": "a",
-        "á": "a",
-        "à": "a",
-        "â": "a",
-        "ç": "c",
-        "é": "e",
-        "ê": "e",
-        "í": "i",
-        "ó": "o",
-        "ô": "o",
-        "ú": "u",
-    })
-    return value.translate(replacements)
+    normalized = unicodedata.normalize("NFD", value)
+    without_accents = "".join(ch for ch in normalized if unicodedata.category(ch) != "Mn")
+    return without_accents.lower()
+
+
+def stores_for_iot(stores: list[dict]) -> list[dict]:
+    all_stores = list(stores)
+    seen = {normalize_name(store.get("name", "")) for store in all_stores}
+    for store in AMERICANA_IOT_STORES:
+        key = normalize_name(store["name"])
+        if key not in seen:
+            all_stores.append(store)
+            seen.add(key)
+    return all_stores
 
 
 def classify_status(queue_minutes: int, stock_alerts: int, freezer_celsius: float) -> str:
@@ -62,7 +71,7 @@ def reading_for_store(store: dict, generated_at: str) -> dict:
     energy_kw = round(rng.uniform(8.0, 32.0), 1)
 
     normalized = normalize_name(store["name"])
-    region = STORE_REGIONS.get(store["name"]) or STORE_REGIONS.get(normalized) or "Campinas"
+    region = STORE_REGIONS.get(normalized) or "Campinas"
 
     return {
         "store": store["name"],
@@ -83,7 +92,7 @@ def main() -> None:
     if stores_path is None:
         raise FileNotFoundError("No stores file found.")
 
-    stores = json.loads(stores_path.read_text(encoding="utf-8"))
+    stores = stores_for_iot(json.loads(stores_path.read_text(encoding="utf-8")))
     generated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     payload = {
         "generatedAt": generated_at,

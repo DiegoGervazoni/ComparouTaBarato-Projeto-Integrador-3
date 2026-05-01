@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-25T13:36:52+00:00",
+  "generatedAt": "2026-05-01T13:30:00+00:00",
   "source": "scripts/fake_iot.py",
   "readings": [
     {
@@ -61,6 +61,42 @@
       "footTraffic": 83,
       "energyKw": 22.0,
       "status": "ok"
+    },
+    {
+      "store": "Crema",
+      "region": "Americana",
+      "lat": -22.7362,
+      "lng": -47.3337,
+      "queueMinutes": 5,
+      "stockAlerts": 2,
+      "freezerCelsius": 3.4,
+      "footTraffic": 64,
+      "energyKw": 18.7,
+      "status": "ok"
+    },
+    {
+      "store": "Pague Menos",
+      "region": "Americana",
+      "lat": -22.7451,
+      "lng": -47.3278,
+      "queueMinutes": 8,
+      "stockAlerts": 3,
+      "freezerCelsius": 5.9,
+      "footTraffic": 78,
+      "energyKw": 23.1,
+      "status": "attention"
+    },
+    {
+      "store": "São Vicente",
+      "region": "Americana",
+      "lat": -22.7398,
+      "lng": -47.3371,
+      "queueMinutes": 12,
+      "stockAlerts": 5,
+      "freezerCelsius": 7.1,
+      "footTraffic": 91,
+      "energyKw": 27.4,
+      "status": "critical"
     }
   ]
 }
