@@ -88,6 +88,16 @@ function resumirIot(readings = []) {
   return { total, ok, attention, critical, avgQueue };
 }
 
+function normalizePromotionIdentityValue(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function promotionIdentityKey(p = {}) {
+  return ["product", "brand", "store", "unit", "category", "region"]
+    .map(field => normalizePromotionIdentityValue(p[field]))
+    .join("|");
+}
+
 module.exports = {
   media,
   filtrarRegiao,
@@ -95,5 +105,6 @@ module.exports = {
   ordenar,
   topNBaratosPorCategoria,
   calcularDistanciaKm,
-  resumirIot
+  resumirIot,
+  promotionIdentityKey
 };

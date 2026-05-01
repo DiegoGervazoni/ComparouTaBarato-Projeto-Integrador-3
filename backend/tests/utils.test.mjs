@@ -8,7 +8,8 @@ const {
   ordenar,
   topNBaratosPorCategoria,
   calcularDistanciaKm,
-  resumirIot
+  resumirIot,
+  promotionIdentityKey
 } = utils;
 
 const dados = [
@@ -114,5 +115,51 @@ describe("resumirIot", () => {
     expect(summary.attention).toBe(1);
     expect(summary.critical).toBe(1);
     expect(Number(summary.avgQueue.toFixed(1))).toBe(7.3);
+  });
+});
+
+describe("promotionIdentityKey", () => {
+  it("normaliza campos que identificam uma promocao sem considerar preco", () => {
+    const a = promotionIdentityKey({
+      product: " Arroz ",
+      brand: "Camil",
+      store: "Pague Menos",
+      price: 24.49,
+      unit: "5 quilograma",
+      category: "cesta_basica",
+      region: "Americana"
+    });
+    const b = promotionIdentityKey({
+      product: "arroz",
+      brand: " camil ",
+      store: "pague menos",
+      price: 21.99,
+      unit: "5 quilograma",
+      category: "CESTA_BASICA",
+      region: "americana"
+    });
+
+    expect(a).toBe(b);
+  });
+
+  it("diferencia lojas para permitir o mesmo item em supermercados distintos", () => {
+    const pagueMenos = promotionIdentityKey({
+      product: "Arroz",
+      brand: "Camil",
+      store: "Pague Menos",
+      unit: "5 quilograma",
+      category: "cesta_basica",
+      region: "Americana"
+    });
+    const saoVicente = promotionIdentityKey({
+      product: "Arroz",
+      brand: "Camil",
+      store: "Sao Vicente",
+      unit: "5 quilograma",
+      category: "cesta_basica",
+      region: "Americana"
+    });
+
+    expect(pagueMenos).not.toBe(saoVicente);
   });
 });
