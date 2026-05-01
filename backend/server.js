@@ -13,7 +13,7 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const { Pool } = require("pg");
-const { calcularDistanciaKm, resumirIot, promotionIdentityKey } = require("./src/utils");
+const { calcularDistanciaKm, resumirIot, promotionIdentityKey, normalizarRegiao, VALID_REGIONS } = require("./src/utils");
 
 
 // ===== Configurações de ambiente
@@ -187,7 +187,7 @@ function promotionFromCsvLine(line, delim, indexes) {
   const qtd = get(indexes.quantity);
   const unid = get(indexes.unit);
   const category = normalizeCsvCategory(get(indexes.category));
-  const region = get(indexes.region) || null;
+  const region = normalizarRegiao(get(indexes.region));
   const unit = [qtd, unid].filter(Boolean).join(" ").trim() || "un";
   const price = Number(String(priceStr).replace(",", "."));
 
@@ -249,7 +249,7 @@ async function syncPromotionsFromCsv() {
   for (const line of dataLines) {
     const promotion = promotionFromCsvLine(line, delim, indexes);
 
-    if (!promotion.product || !promotion.store || !Number.isFinite(promotion.price)) {
+    if (!promotion.product || !promotion.store || !promotion.region || !Number.isFinite(promotion.price)) {
       skipped++;
       continue;
     }
@@ -294,12 +294,12 @@ function sanitizePromotion(p) {
     price: Number(p.price),
     unit: String(p.unit || "").trim(),
     category: String(p.category || "").trim(),
-    region: String(p.region || "").trim(),
+    region: normalizarRegiao(p.region) || "",
   };
 }
 
 function validPromotion(p) {
-  return p.product && Number.isFinite(p.price);
+  return p.product && p.store && p.region && Number.isFinite(p.price);
 }
 
 function calcularDistancia(lat1, lon1, lat2, lon2) {
@@ -356,10 +356,14 @@ app.get("/promotions", async (req, res) => {
       "price is not null",
       "price > 0"
     ];
+    params.push(VALID_REGIONS.map(regionName => regionName.toLowerCase()));
+    whereParts.push(`lower(trim(region)) = any($${params.length}::text[])`);
 
     if (region && region !== "Todas") {
-      params.push(String(region).toLowerCase());
-      whereParts.push(`lower(region) = $${params.length}`);
+      const normalizedRegion = normalizarRegiao(region);
+      if (!normalizedRegion) return res.json([]);
+      params.push(normalizedRegion.toLowerCase());
+      whereParts.push(`lower(trim(region)) = $${params.length}`);
     }
 
     if (q && String(q).trim()) {
@@ -385,7 +389,10 @@ app.get("/promotions", async (req, res) => {
     `;
 
     const { rows } = await pool.query(sql, params);
-    res.json(rows);
+    res.json(rows.map(row => ({
+      ...row,
+      region: normalizarRegiao(row.region) || row.region,
+    })));
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Erro ao listar promoções" });

@@ -2,6 +2,7 @@
 const API = window.location.origin;
 const itensPorPagina = 10;
 const REGIOES = ["Todas","Campinas","Americana","Itapira"];
+const CIDADES = REGIOES.filter(regiao => regiao !== "Todas");
 const REGIAO_PADRAO = "Campinas";
 let regiaoSel = localStorage.getItem("regiaoCTB") || REGIAO_PADRAO;
 if (!REGIOES.includes(regiaoSel)) {
@@ -109,9 +110,16 @@ function renderStats(lista){
 
 // ===== Helpers de dados
 function media(arr){ const v=arr.map(x=>+x.price).filter(Number.isFinite); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : 0; }
+function normalizarRegiaoCliente(value){
+  const normalized = String(value ?? "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return CIDADES.find(regiao => regiao.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized) || null;
+}
+function regiaoValida(value){ return !!normalizarRegiaoCliente(value); }
 function filtrarRegiao(lista, r){
-  if (!r || r === "Todas") return [...lista];
-  return lista.filter(p => (p.region||"").toLowerCase() === String(r).toLowerCase());
+  if (!r || r === "Todas") return lista.filter(p => regiaoValida(p.region));
+  const regiao = normalizarRegiaoCliente(r);
+  if (!regiao) return [];
+  return lista.filter(p => normalizarRegiaoCliente(p.region) === regiao);
 }
 function porChave(lista, chave){
   const map = new Map();
@@ -352,10 +360,12 @@ function renderIndicadoresPreco(){
 
   // Tabelas comparativas
   // a) Região
-  const porReg = porChave(dadosOriginais, "region");
   const regLabels = [], regData = [];
-  Array.from(porReg.entries()).forEach(([reg, arr])=>{
-    regLabels.push(reg); regData.push(media(arr));
+  CIDADES.forEach(reg=>{
+    const arr = dadosOriginais.filter(p => normalizarRegiaoCliente(p.region) === reg);
+    if (!arr.length) return;
+    regLabels.push(reg);
+    regData.push(media(arr));
   });
   qs("#cmpRegioes").innerHTML =
     `<table class="table"><thead><tr><th>Região</th><th class="price">Média</th></tr></thead><tbody>${
@@ -644,7 +654,10 @@ function render(lista){
 // ===== Carregar
 async function carregar(){
   const r=await fetch(`${API}/promotions`);
-  dadosOriginais=await r.json();
+  const data = await r.json();
+  dadosOriginais = (Array.isArray(data) ? data : [])
+    .map(item => ({ ...item, region: normalizarRegiaoCliente(item.region) }))
+    .filter(item => item.region);
   popularLojasFormulario();
   aplicarFiltros();
   if (indicadoresVisiveis) renderIndicadoresPreco();

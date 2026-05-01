@@ -11,6 +11,21 @@ function filtrarRegiao(lista, r) {
   return lista.filter(p => (p.region || "").toLowerCase() === String(r).toLowerCase());
 }
 
+const VALID_REGIONS = ["Campinas", "Americana", "Itapira"];
+
+function normalizeRegionValue(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function normalizarRegiao(value) {
+  const normalized = normalizeRegionValue(value);
+  return VALID_REGIONS.find(region => normalizeRegionValue(region) === normalized) || null;
+}
+
 function porChave(lista, chave) {
   const map = new Map();
   for (const p of lista) {
@@ -106,5 +121,7 @@ module.exports = {
   topNBaratosPorCategoria,
   calcularDistanciaKm,
   resumirIot,
-  promotionIdentityKey
+  promotionIdentityKey,
+  normalizarRegiao,
+  VALID_REGIONS
 };

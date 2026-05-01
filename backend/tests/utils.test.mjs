@@ -9,7 +9,9 @@ const {
   topNBaratosPorCategoria,
   calcularDistanciaKm,
   resumirIot,
-  promotionIdentityKey
+  promotionIdentityKey,
+  normalizarRegiao,
+  VALID_REGIONS
 } = utils;
 
 const dados = [
@@ -39,6 +41,16 @@ describe("filtrarRegiao", () => {
   it("filtra ignorando maiúsculas e minúsculas", () => {
     const r = filtrarRegiao(dados, "itapira");
     expect(r.every(x => x.region === "Itapira")).toBe(true);
+  });
+});
+
+describe("normalizarRegiao", () => {
+  it("aceita somente cidades cadastradas como regiao", () => {
+    expect(VALID_REGIONS).toEqual(expect.arrayContaining(["Campinas", "Americana", "Itapira"]));
+    expect(normalizarRegiao("itapira")).toBe("Itapira");
+    expect(normalizarRegiao("Cesta Básica")).toBe(null);
+    expect(normalizarRegiao("Limpeza")).toBe(null);
+    expect(normalizarRegiao("Outras")).toBe(null);
   });
 });
 
