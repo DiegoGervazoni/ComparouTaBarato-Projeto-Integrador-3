@@ -1,8 +1,13 @@
 // ===== Config/estado
 const API = window.location.origin;
 const itensPorPagina = 10;
-const REGIOES = ["Todas","Campinas","Americana","Monte Mor","Itapira"];
-let regiaoSel = localStorage.getItem("regiaoCTB") || "Monte Mor";
+const REGIOES = ["Todas","Campinas","Americana","Itapira"];
+const REGIAO_PADRAO = "Campinas";
+let regiaoSel = localStorage.getItem("regiaoCTB") || REGIAO_PADRAO;
+if (!REGIOES.includes(regiaoSel)) {
+  regiaoSel = REGIAO_PADRAO;
+  localStorage.setItem("regiaoCTB", regiaoSel);
+}
 
 let token = localStorage.getItem("token") || null; // login só habilita cadastro/edição
 let dadosOriginais = [];
