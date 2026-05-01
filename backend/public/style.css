@@ -1,14 +1,18 @@
 :root{
-  --bg:#f5f7fb;
+  --bg:#eef4f1;
   --card:#ffffff;
-  --muted:#6b7280;
-  --line:#eceff4;
-  --ink:#111827;
-  --brand:#2563eb;
-  --good:#0a7a28;
-  --chip:#eaf0ff;
+  --surface:#f8fbf9;
+  --muted:#64748b;
+  --line:#dbe4ee;
+  --ink:#132018;
+  --brand:#0f766e;
+  --brand-2:#2563eb;
+  --accent:#ef4444;
+  --good:#087f3e;
+  --chip:#e6f4ef;
   --warn:#fff7ed;
   --warn-b:#fdba74;
+  --shadow:0 12px 30px rgba(15,23,42,.08);
 }
 
 /* Apenas para leitores de tela */
@@ -27,38 +31,40 @@
 *{box-sizing:border-box}
 body{
   font-family:Inter,system-ui,Arial,sans-serif;
-  background:var(--bg);
+  background:
+    linear-gradient(180deg,#dbeafe 0,#eef4f1 230px,#f7faf8 100%);
   color:var(--ink);
   margin:0;
-  padding:20px;
+  padding:24px 20px;
 }
 
 /* Header / Topbar */
 h1{margin:0 0 10px;font-size:28px}
-.app-header{max-width:1100px;margin:0 auto}
+.app-header{max-width:1100px;margin:0 auto;background:linear-gradient(135deg,#0f766e 0%,#2563eb 100%);border:1px solid rgba(255,255,255,.38);border-radius:16px;padding:18px 20px;color:#fff;box-shadow:var(--shadow)}
+.app-header h1{margin:0;font-size:30px;color:#fff}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.region-tag{display:flex;align-items:center;gap:8px;background:var(--chip);padding:8px 12px;border-radius:12px;font-weight:700}
-.region-tag select{border:1px solid #cbd5e1;border-radius:10px;padding:6px 10px;background:#fff}
+.region-tag{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);padding:8px 12px;border-radius:12px;font-weight:700;color:#fff}
+.region-tag select{border:1px solid rgba(255,255,255,.55);border-radius:10px;padding:6px 10px;background:#fff;color:#132018;font-weight:700}
 .auth{display:flex;align-items:center;gap:10px}
-.btn-link{background:none;border:0;color:var(--brand);font-weight:700;cursor:pointer}
+.btn-link{background:#fff;border:0;color:var(--brand);font-weight:800;cursor:pointer;border-radius:9px;padding:7px 10px}
 .badge{background:var(--good);color:#fff;border-radius:8px;padding:4px 8px;font-weight:700;font-size:12px}
 
 /* Filtros */
-.controls{max-width:1100px;margin:14px auto;display:grid;gap:10px;grid-template-columns:1fr 220px 220px}
-.controls input,.controls select{border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;font-size:16px;background:#fff}
+.controls{max-width:1100px;margin:14px auto;display:grid;gap:10px;grid-template-columns:1fr 220px 220px;background:rgba(255,255,255,.88);border:1px solid rgba(219,228,238,.9);border-radius:14px;padding:12px;box-shadow:0 8px 22px rgba(15,23,42,.05)}
+.controls input,.controls select{border:1px solid #cbd5e1;border-radius:10px;padding:11px 12px;font-size:16px;background:#fff;color:var(--ink)}
 
 /* Botão Indicadores */
 .container{max-width:1100px;margin:8px auto 0}
-.btn-primary{padding:10px 14px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.btn-primary{padding:10px 14px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 8px 18px rgba(15,118,110,.2)}
 .btn-primary:hover{filter:brightness(1.05)}
 
 /* IoT fake + geolocalização */
-.iot-panel{max-width:1100px;margin:14px auto;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 2px 18px rgba(0,0,0,.05)}
+.iot-panel{max-width:1100px;margin:14px auto;background:linear-gradient(180deg,#ffffff 0%,#f8fbf9 100%);border:1px solid var(--line);border-top:4px solid var(--brand);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
 .iot-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .section-title--inline{margin:2px 0 0}
 .iot-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .iot-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:12px}
-.iot-kpi{border:1px solid var(--line);border-radius:10px;padding:10px;background:#f8fafc}
+.iot-kpi{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
 .iot-kpi span{display:block;color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase}
 .iot-kpi strong{display:block;margin-top:4px;font-size:20px}
 .iot-kpi.ok strong{color:#0a7a28}
@@ -74,8 +80,11 @@ h1{margin:0 0 10px;font-size:28px}
 .iot-legend-item.ok .iot-dot{background:#16a34a;box-shadow:0 0 0 3px #dcfce7}
 .iot-legend-item.attention .iot-dot{background:#f59e0b;box-shadow:0 0 0 3px #fef3c7}
 .iot-legend-item.critical .iot-dot{background:#dc2626;box-shadow:0 0 0 3px #fee2e2}
+.iot-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.iot-guide strong{display:block;color:var(--ink);font-size:13px;margin-bottom:3px}
+.iot-guide p{margin:0;color:var(--muted);font-size:12px;line-height:1.4}
 .iot-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:12px}
-.iot-card{border:1px solid var(--line);border-left-width:5px;border-radius:10px;padding:12px;background:#fff}
+.iot-card{border:1px solid var(--line);border-left-width:5px;border-radius:10px;padding:12px;background:#fff;box-shadow:0 6px 16px rgba(15,23,42,.04)}
 .iot-card.ok{border-left-color:#16a34a}
 .iot-card.attention{border-left-color:#f59e0b}
 .iot-card.critical{border-left-color:#dc2626}
@@ -87,14 +96,16 @@ h1{margin:0 0 10px;font-size:28px}
 .iot-pill.attention{background:#fef3c7;color:#92400e}
 .iot-pill.critical{background:#fee2e2;color:#991b1b}
 .iot-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;font-size:12px;color:#374151}
-.iot-metrics span{background:#f8fafc;border-radius:8px;padding:8px}
-.iot-metrics b{display:block;color:var(--ink);font-size:15px}
+.iot-metric{background:#f8fafc;border:1px solid #edf2f7;border-radius:8px;padding:8px;min-width:0}
+.iot-metric b{display:block;color:var(--ink);font-size:16px}
+.iot-metric span{display:block;margin-top:2px;font-weight:800;color:#334155}
+.iot-metric small{display:block;margin-top:3px;color:var(--muted);font-size:11px;line-height:1.3}
 
 /* Aviso */
 .alert{max-width:1100px;margin:10px auto;background:var(--warn);border:1px solid var(--warn-b);color:#92400e;padding:12px 14px;border-radius:12px}
 
 /* Formulário */
-.form{max-width:1100px;margin:14px auto;background:var(--card);border-radius:14px;padding:16px;box-shadow:0 2px 18px rgba(0,0,0,.06)}
+.form{max-width:1100px;margin:14px auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
 .form .grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
 .form input,.form select{border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px}
 .form button{margin-top:8px;padding:10px 14px;border:0;border-radius:10px;background:var(--good);color:#fff;font-weight:800;cursor:pointer}
@@ -111,7 +122,7 @@ h1{margin:0 0 10px;font-size:28px}
 
 /* Cards */
 .cards{max-width:1100px;margin:8px auto;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-.cardbox{background:var(--card);border-radius:14px;padding:14px 16px;box-shadow:0 2px 18px rgba(0,0,0,.06)}
+.cardbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:0 8px 22px rgba(15,23,42,.06)}
 .cardbox--wide{grid-column:1 / -1}
 .card-title{font-weight:900;margin-bottom:6px}
 .muted{color:var(--muted)} .small{font-size:13px}
@@ -142,11 +153,11 @@ h1{margin:0 0 10px;font-size:28px}
 
 /* Lista de promoções */
 .list{max-width:1100px;margin:10px auto 20px;display:grid;gap:12px}
-.card{background:#fff;border-radius:12px;box-shadow:0 2px 18px rgba(0,0,0,.06);padding:14px 16px}
-.title{font-weight:800;margin:0 0 4px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 22px rgba(15,23,42,.05);padding:14px 16px}
+.title{font-weight:900;margin:0 0 4px;color:#0f172a}
 .sub{color:#6b7280}
 .actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
-.btn{padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer}
+.btn{padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;cursor:pointer;font-weight:800}
 .btn.edit{color:#2563eb;border-color:#2563eb}
 .btn.delete{color:#c62828;border-color:#c62828}
 .empty{max-width:1100px;margin:20px auto;text-align:center;color:#6b7280}
@@ -167,5 +178,5 @@ h1{margin:0 0 10px;font-size:28px}
 
 /* Responsivo */
 @media (max-width:980px){ .controls{grid-template-columns:1fr 1fr} }
-@media (max-width:720px){ .iot-legend{grid-template-columns:1fr} .iot-legend-grid{grid-template-columns:1fr} }
-@media (max-width:560px){ .controls{grid-template-columns:1fr} .iot-head{flex-direction:column} .iot-actions{justify-content:flex-start} }
+@media (max-width:720px){ .iot-legend{grid-template-columns:1fr} .iot-legend-grid,.iot-guide{grid-template-columns:1fr} }
+@media (max-width:560px){ body{padding:14px 12px} .controls{grid-template-columns:1fr} .app-header{padding:16px} .topbar{align-items:flex-start;flex-direction:column} .iot-head{flex-direction:column} .iot-actions{justify-content:flex-start} .iot-metrics{grid-template-columns:1fr} }

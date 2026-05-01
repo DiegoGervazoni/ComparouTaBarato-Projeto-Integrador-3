@@ -177,10 +177,26 @@ function renderIot(payload){
           <span class="iot-pill ${status}">${iotStatusLabel[status] || status}</span>
         </div>
         <div class="iot-metrics">
-          <span><b>${Number(item.queueMinutes || 0)}</b> min fila</span>
-          <span><b>${Number(item.stockAlerts || 0)}</b> alertas</span>
-          <span><b>${Number(item.freezerCelsius || 0).toFixed(1)}°C</b> freezer</span>
-          <span><b>${Number(item.footTraffic || 0)}</b> fluxo</span>
+          <span class="iot-metric">
+            <b>${Number(item.queueMinutes || 0)} min</b>
+            <span>Tempo de fila</span>
+            <small>Espera estimada no caixa</small>
+          </span>
+          <span class="iot-metric">
+            <b>${Number(item.stockAlerts || 0)}</b>
+            <span>Estoque baixo</span>
+            <small>Alertas de reposição nas prateleiras</small>
+          </span>
+          <span class="iot-metric">
+            <b>${Number(item.freezerCelsius || 0).toFixed(1)}°C</b>
+            <span>Temperatura</span>
+            <small>Leitura dos freezers</small>
+          </span>
+          <span class="iot-metric">
+            <b>${Number(item.footTraffic || 0)}</b>
+            <span>Movimento na loja</span>
+            <small>Estimativa de clientes circulando</small>
+          </span>
         </div>
       </article>`;
   }).join("");
