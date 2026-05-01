@@ -524,11 +524,20 @@ function render(lista){
 
   el.innerHTML = visiveis.map((p,i)=>{
     const normal = `
-      <div class="title">${p.product}</div>
-      <div class="price">${moeda(p.price)} / ${p.unit}</div>
-      <div class="sub">${p.store}${p.brand ? " • " + p.brand : ""}</div>
-      <div class="sub">Categoria: ${(leg[p.category] || p.category)} • ${p.region || regiaoSel}</div>
-      ${i===0 && modo==="preco_asc" ? '<div style="color:#0a7a28;font-weight:bold;">✅ Mais barato (página)</div>' : ""}
+      <div class="product-card">
+        <div class="product-card-top">
+          <div>
+            <div class="title">${escapeHTML(p.product)}</div>
+            <div class="product-meta">
+              <span>${escapeHTML(p.store)}${p.brand ? " • " + escapeHTML(p.brand) : ""}</span>
+              <span>${escapeHTML(leg[p.category] || p.category)}</span>
+              <span>${escapeHTML(p.region || regiaoSel)}</span>
+            </div>
+          </div>
+          <div class="product-price">${moeda(p.price)}<small>${escapeHTML(p.unit)}</small></div>
+        </div>
+        ${i===0 && modo==="preco_asc" ? '<div class="best-chip">Mais barato na página</div>' : ""}
+      </div>
       ${logged && regiaoSel!=="Todas" ? `
         <div class="actions">
           <button class="btn edit" onclick="startEditById(${p.id})">Editar</button>
@@ -660,12 +669,12 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     const btn  = qs("#btnToggleIndicadores");
     if (indicadoresVisiveis){
       wrap.style.display = "block";
-      btn.textContent = "📊 Ocultar Indicadores";
+      btn.textContent = "Ocultar indicadores";
       btn.setAttribute("aria-expanded","true");
       renderIndicadoresPreco();
     } else {
       wrap.style.display = "none";
-      btn.textContent = "📊 Mostrar Indicadores";
+      btn.textContent = "Mostrar indicadores";
       btn.setAttribute("aria-expanded","false");
       limparIndicadores();
     }
